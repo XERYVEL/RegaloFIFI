@@ -20,7 +20,6 @@ public class Reloj {
         this.startTime = System.nanoTime();
     }
 
-    // Metodo de actualizacion del tiempo interno
 
     public void actualizarTiempo(){
         if (!condicion.gameFinished && !condicion.gameOver){
@@ -36,18 +35,16 @@ public class Reloj {
     }
 
     public void agregarTiempo(int segundosExtra) {
-        playTime += segundosExtra * 1000.0; // convierto segundos a milisegundos
+        playTime += segundosExtra * 1000.0;
     }
 
-    //Calculamos la condicion de derrota
     public void derrota() {
-        if(min >= 7){
+        if(min >= 12){
             gp.gameState = gp.gameOverState;
             gp.playSE(3);
         }
     }
 
-    //Reiniciar el tiempo
     public void reiniciarTiempo() {
         playTime = 0;
         min = 0;
@@ -55,10 +52,7 @@ public class Reloj {
         ms = 0;
         startTime = System.nanoTime();
     }
-    //para usarlo: reloj.reiniciarTiempo();
 
-
-    // Gets para las variables
     public int getMinutos() {
         return min;
     }

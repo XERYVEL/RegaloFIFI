@@ -30,11 +30,9 @@ public class NPC_Panadera extends Entity {
     }
 
     public void setAction() {
-        //agrgar movimiento
         direction = Direccion.Abajo;
     }
 
-    // sobreescritura de la variable speak de entidades por personajes
     public void speak() {
 
         if (gp.tieneCupon) {
@@ -56,14 +54,14 @@ public class NPC_Panadera extends Entity {
             dialogues[0] = "Hola... en que te puedo ayudar?";
             dialogues[1] = "Lo siento... \npero la unica comida que\nnos queda esta reservada";
             dialogues[2] = "Si no tienes el cupon... \nEntonces vete... \nEspero clientes";
-        }// Mostrar línea por línea
+        }
 
         if (dialogues[dialogueIndexNPC] != null) {
             gp.ui.currentDialogue = dialogues[dialogueIndexNPC];
             dialogueIndexNPC++;
         } else {
-            dialogoTerminado = true; // terminó todo el diálogo
-            gp.ui.currentDialogue = "Ya te di el pan de ajo. Siguiente!!!"; // opcional
+            dialogoTerminado = true;
+            gp.ui.currentDialogue = "Ya te di el pan de ajo. Siguiente!!!";
         }
     }
 }

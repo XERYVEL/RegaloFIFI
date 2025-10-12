@@ -8,11 +8,11 @@ import java.util.Random;
 
 public class NPC_Pavon extends Entity {
 
-    public int dialogueIndexNPC = 0; // índice propio del NPC
+    public int dialogueIndexNPC = 0;
     public NPC_Pavon(gamePanel gp) {
         super(gp);
         direction = Direccion.Abajo;
-        speed = 1; // lo cambie para frenar al npc
+        speed = 1;
         getImage();
         setDialogue();
         setColisionArea();
@@ -47,9 +47,9 @@ public class NPC_Pavon extends Entity {
     public void setAction() {
 
         actionLockCounter++;
-        if (actionLockCounter == 120) { // hacemos que solo se cambie la direccion cada 120 updates
+        if (actionLockCounter == 120) {
             Random random = new Random();
-            int i = random.nextInt(100) + 1; // consigue un numero entre 1 y 100
+            int i = random.nextInt(100) + 1;
             if (i <= 25) {
                 direction = Direccion.Arriba;
             }
@@ -67,24 +67,18 @@ public class NPC_Pavon extends Entity {
 
     }
 
-    // sobreescritura de la variable speak de entidades por personajes
     @Override
     public void speak() {
-        // Dar el cupón solo la primera vez
         if (!gp.tieneCupon) {
             gp.player.inventory.add(new OBJ_valePorComida(gp));
             gp.tieneCupon = true;
         }
 
-        // Mostrar la línea actual de diálogo del NPC
         if (dialogues[dialogueIndexNPC] != null) {
             gp.ui.currentDialogue = dialogues[dialogueIndexNPC];
-            dialogueIndexNPC++; // pasamos a la siguiente línea
+            dialogueIndexNPC++;
         } else {
-            // Si ya terminó todo el diálogo
-            gp.ui.currentDialogue = "Ya te di el vale"; // o algún mensaje opcional
+            gp.ui.currentDialogue = "Ya te di el vale";
         }
     }
-    //podemos personalizar las caracteristicas principales de cada personaje
-
 }

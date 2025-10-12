@@ -3,25 +3,19 @@ package main;
 import Tiles.TileManager;
 import entity.Entity;
 import entity.Player;
+
 import varios.Reloj;
-import javax.swing.JFrame;
 
-// JavaFX
 import javafx.application.Platform;
-
-// Swing
 import javax.swing.JPanel;
 
-// AWT
 import java.awt.*;
 
-// Otros
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
 public class gamePanel extends JPanel implements Runnable {
-        // configuración de pantalla
         final int originalTileSize = 16;
         final int scale = 4;
 
@@ -31,21 +25,17 @@ public class gamePanel extends JPanel implements Runnable {
         public final int maxScreenRow = 12;
         public final int screenWidth = tileSize * maxScreenCol;
         public final int screenHeight = tileSize * maxScreenRow;
-        public boolean videoMostrado = false; // para el video de salida de la tienda
+        public boolean videoMostrado = false;
         public boolean videoMostrado2 = false;
-        public boolean estaPavon = true;
         public boolean tieneCupon = false;
-    // configuraciones del mundo
+
         public final int maxWorldCol = 50;
         public final int maxWorldRow = 50;
         public final int maxMap =10;
         public int currentMap = 0;
 
-
-        // FPS
         int FPS = 60;
 
-        // Reloj
         public Reloj reloj;
         TileManager tileM = new TileManager(this);
 
@@ -57,18 +47,13 @@ public class gamePanel extends JPanel implements Runnable {
         public AssetSetter aSetter = new AssetSetter(this);
         public UI ui = new UI(this);
 
-        // ENTITY AND OBJECT
         public Player player = new Player(this, keyH);
         public EventHandler eHandler = new EventHandler(this);
-        public Entity obj[][] = new Entity[maxMap][10];   // objetos
-        public Entity npc[][] = new Entity[maxMap][10];   // npcs
-         public boolean spawnPan = false;
+        public Entity obj[][] = new Entity[maxMap][10];
+        public Entity npc[][] = new Entity[maxMap][10];
 
         ArrayList<Entity> entityList = new ArrayList<>();
 
-
-
-    //GAME STATES
     public int gameState;
     public final int titleState = 0;
     public final int playState = 1;
@@ -89,12 +74,11 @@ public class gamePanel extends JPanel implements Runnable {
 
         videos = new VideosSwing(screenWidth, screenHeight);
 
-        this.setLayout(null); // layout nulo para poder posicionar libremente
+        this.setLayout(null);
         videos.getFXPanel().setBounds(0, 0, screenWidth, screenHeight);
         videos.getFXPanel().setVisible(false);
         this.add(videos.getFXPanel());
 
-        // Agregar el JFXPanel al JPanel del juego
         this.add(videos.getFXPanel());
         videos.getFXPanel().setVisible(false);
         videos.loadVideo("pavon", "res/Videos/MercadoPatio.mp4");
@@ -106,10 +90,8 @@ public class gamePanel extends JPanel implements Runnable {
     public void showVideo(String key) {
         System.out.println("=== Mostrando video: " + key + " ===");
 
-        // 1. Pausar el juego (Estado de video)
         gameState = videoState;
 
-        // 2. Hacer visible el panel de video
         videos.getFXPanel().setVisible(true);
         videos.getFXPanel().revalidate();
         videos.getFXPanel().repaint();
@@ -117,20 +99,16 @@ public class gamePanel extends JPanel implements Runnable {
         Platform.runLater(() -> {
             videos.play(key);
 
-            // 3. Configurar la acción al terminar el video
             if (videos.currentPlayer != null) {
                 videos.currentPlayer.setOnEndOfMedia(() -> {
                     Platform.runLater(() -> {
                         videos.stop();
                         videos.getFXPanel().setVisible(false);
 
-                        // LÓGICA CLAVE: Si es el video final, activar la victoria/créditos
                         if (key.equals("monu")) {
-                            // 🎶 Detener la música de fondo
-                            ui.gameFinished = true; // 🏆 Activar la pantalla de créditos/victoria
-                            gameState = playState;  // Volver a PlayState para que la UI se dibuje encima
+                            ui.gameFinished = true;
+                            gameState = playState;
                         } else {
-                            // Para el primer video ("pavon") o cualquier otro:
                             gameState = playState;
                         }
                     });
@@ -142,7 +120,6 @@ public class gamePanel extends JPanel implements Runnable {
     public void setupGame() {
         aSetter.setObject();
         aSetter.setNPC();
-       // playMusic(0);
         gameState = titleState;
 
     }
@@ -179,50 +156,19 @@ public class gamePanel extends JPanel implements Runnable {
 
     public void update() {
             if(gameState == playState){
-                // Actualizar player
                 player.update();
 
-                // Actualizar NPCs
                 for (int i = 0; i < npc[1].length; i++) {
                     if (npc[currentMap][i] != null) {
                         npc[currentMap][i].update();
                     }
                 }
 
-                // Revisar eventos
-                eHandler.checkEvent(); // <- esto es clave
+                eHandler.checkEvent();
 
-                // Actualizar reloj
                 reloj.actualizarTiempo();
                 reloj.derrota();
             }
-
-            if(gameState == pauseState) {
-                // juego en pausa, no actualizar nada
-            }
-
-
-        //pausa o reanudacion del juego
-        if(gameState == playState){
-
-            //Llamamos el metodo update del objeto player
-            player.update();
-
-            //Llamamos el metodo update del objeto NPC
-
-            for (int i = 0; i < npc[1].length; i++) {
-                if (npc[currentMap][i] != null) {
-                    npc[currentMap][i].update();
-                }
-            }
-            // actualizar reloj y chequear derrota
-            reloj.actualizarTiempo();
-            reloj.derrota();
-        }
-
-        if(gameState == pauseState) {
-            // si está en pauseState no hace nada
-        }
 
         checkMusic();
     }
@@ -237,35 +183,22 @@ public class gamePanel extends JPanel implements Runnable {
             drawStart = System.nanoTime();
         }
 
-        //Llamamos primero a las tiles y después al player, para priorizar la "capa" Tiles.
-
         tileM.draw(g2);
 
-
-
-        // TITLE SCREEN
         if(gameState == titleState) {
             ui.draw(g2);
-
         }
         if (gameState == videoState) {
-            // Solo dejamos que se vea el JFXPanel
-            // No dibujamos nada del juego debajo
             return;
         }
 
-        // OTHERS
         else {
-            // TILE
             tileM.draw(g2);
         }
 
-        //Llamamos el metodo draw del objeto player
         player.draw(g2);
-        // UI
         ui.draw(g2);
 
-        // add entities
         entityList.add(player);
 
         for (Entity[] row : npc) {
@@ -280,7 +213,6 @@ public class gamePanel extends JPanel implements Runnable {
             }
         }
 
-        // SORT
         Collections.sort(entityList, new Comparator<Entity>() {
             @Override
             public int compare(Entity o1, Entity o2) {
@@ -288,24 +220,20 @@ public class gamePanel extends JPanel implements Runnable {
             }
         });
 
-        // DRAW ENTITIES
         for (Entity e : entityList) {
             e.draw(g2);
         }
 
-        // EMPTY ENTITY LIST
         entityList.clear();
 
-        // UI
         ui.draw(g2);
 
-        // Debug
         if (keyH.checkDrawTime == true) {
             long drawEnd = System.nanoTime();
             long passed = drawEnd - drawStart;
             g2.setColor(Color.white);
             g2.setFont(new Font("Arial",Font.PLAIN,20));
-//            System.out.println("Draw time: " + passed);
+
             int x = 10;
             int y = 400;
 
@@ -320,47 +248,40 @@ public class gamePanel extends JPanel implements Runnable {
 
     }
 
-    // ⭐ MÉTODO DE CONTROL DE MÚSICA - Lógica por mapa
-    // gamePanel.java
 
     public void checkMusic() {
 
-        // ⭐ CAMBIO CRÍTICO: Si el juego ha terminado, forzamos la detención
-        //    de toda la música (y solo MG.wav seguirá sonando si se llamó como playMusic)
         if (ui.gameFinished) {
             stopMusic();
-            return; // Salir de la función para no iniciar nada más
+            return;
         }
 
-        // Si el juego NO ha terminado, usamos la lógica de estados
         if (gameState == playState || gameState == dialogueState || gameState == characterState) {
 
-            // MÚSICA CONDICIONAL POR MAPA
             if (currentMap == 0) {
                 playMusic(7);
             } else if (currentMap == 1) {
                 playMusic(8);
             } else if (currentMap == 2) {
-                playMusic(9); // Fondo 3
+                playMusic(9);
             } else {
                 stopMusic();
             }
         }
         else {
-            // Estados donde queremos silencio total: Pause, Video, Game Over
             stopMusic();
         }
     }
 
     public void playMusic(int i) {
-        sonido.playMusic(i); // ⭐ Llama a la nueva lógica de bucle
+        sonido.playMusic(i);
     }
 
     public void stopMusic() {
-        sonido.stopMusic(); // ⭐ Llama al método dedicado a detener música
+        sonido.stopMusic();
     }
 
     public void playSE(int i) {
-        sonido.playSE(i); // ⭐ Llama a la nueva lógica de efecto de sonido (con corte de música)
+        sonido.playSE(i);
     }
 }

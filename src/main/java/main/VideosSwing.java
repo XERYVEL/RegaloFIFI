@@ -22,10 +22,9 @@ public class VideosSwing {
     private boolean fxInitialized = false;
 
     public VideosSwing(int width, int height) {
-        // Inicializar JavaFX (solo una vez)
         if (!fxInitialized) {
             try {
-                Platform.startup(() -> {}); // <- aquí se inicializa JavaFX
+                Platform.startup(() -> {});
             } catch (IllegalStateException e) {}
             fxInitialized = true;
         }
@@ -53,20 +52,18 @@ public class VideosSwing {
     public void play(String key) {
         Media media = mediaMap.get(key);
         if (media == null) {
-            System.out.println("⚠️ Video no cargado: " + key);
+            System.out.println("Video no cargado: " + key);
             return;
         }
 
-        // Detener video actual si existe
         if (currentPlayer != null) {
-            stop(); // <- llamamos a stop() que ahora usa Platform.runLater
+            stop();
         }
 
         currentPlayer = new MediaPlayer(media);
         mediaView.setMediaPlayer(currentPlayer);
 
-        // Crear escena JavaFX dentro de JFXPanel y reproducir
-        Platform.runLater(() -> {  // <- clave, todo esto corre en hilo de JavaFX
+        Platform.runLater(() -> {
             StackPane root = new StackPane(mediaView);
             Scene scene = new Scene(root, fxPanel.getWidth(), fxPanel.getHeight());
 
@@ -78,13 +75,9 @@ public class VideosSwing {
         });
     }
 
-    // ----------------------------
-    // Modificaciones clave para evitar que se trabe el juego
-    // ----------------------------
-
     public void stop() {
         if (currentPlayer != null) {
-            Platform.runLater(() -> currentPlayer.stop()); // <- aquí
+            Platform.runLater(() -> currentPlayer.stop());
         }
     }
 }

@@ -20,7 +20,6 @@ public class NPC_LupeMarciana extends Entity{
     public void getImage() {
         down1 = setup("/NPC_LupeMarciana/lupemarciana1");
         down2 = setup("/NPC_LupeMarciana/lupemarciana2");
-
     }
 
 
@@ -32,11 +31,9 @@ public class NPC_LupeMarciana extends Entity{
     }
 
     public void setAction() {
-        //agregar posible accion
         direction = Direccion.Abajo;
     }
 
-    // sobreescritura de la variable speak de entidades por personajes
     public void speak() {
         dialogues[0] = "Zip Zip Zip";
         dialogues[1] = "* UN MARCIANO LLORANDO??? *";
