@@ -15,7 +15,7 @@ public class TileManager {
     gamePanel gp;
 
     public Tile[] tile;
-    public int[][][] mapTileNum; //array de tres dimensiones
+    public int[][][] mapTileNum;
 
 
     public TileManager(gamePanel gp) {
@@ -137,7 +137,7 @@ public void getTileImage() {
         }
     }
 
-    public void loadMap(String filePath, int map) { // (String filePath, int map)
+    public void loadMap(String filePath, int map) {
         try {
             InputStream is = getClass().getResourceAsStream(filePath);
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -151,7 +151,6 @@ public void getTileImage() {
 
                     int num  = Integer.parseInt(numbers[col]);
 
-                    // mapTileNum[row][col] = num;
                     mapTileNum[map][col][row] = num;
                     col ++;
                 }
@@ -179,7 +178,6 @@ public void getTileImage() {
              int screenX = worldX - gp.player.worldX + gp.player.screenX;
              int screenY = worldY - gp.player.worldY + gp.player.screenY;
 
-             // por rendimiento, vamos a dibujar solo las tiles visibles y una mas
              if (worldX + gp.tileSize > gp.player.worldX - gp.player.screenX &&
                 worldX - gp.tileSize < gp.player.worldX + gp.player.screenX &&
                 worldY + gp.tileSize > gp.player.worldY - gp.player.screenY &&

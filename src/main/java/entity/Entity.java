@@ -1,6 +1,5 @@
 package entity;
 
-
 import main.UtilityTool;
 import main.gamePanel;
 import varios.Direccion;
@@ -17,37 +16,31 @@ public class Entity {
     public int speed;
     public int mapIndex;
     public BufferedImage up1, up2, down1, down2, left1, left2, right1, right2;
-    public Direccion direction = Direccion.Abajo; // probar cambiar el primer Direction por String
+    public Direccion direction = Direccion.Abajo;
 
     public int spriteCounter = 0;
     public int spriteNum = 1;
 
-    //colision del jugador
     public Rectangle solidArea = new Rectangle(0, 0, 48, 48);
     public int solidAreaDefaultX, solidAreaDefaultY;
     public boolean collisionOn = false;
 
-    //Inicializamos la variable para que no se cambie la direccion constantemente
     public int actionLockCounter = 0;
 
-    //Dialogos
     String dialogues[] = new String[20];
     int dialogueIndex = 0;
 
-    public BufferedImage image;
     public String name;
     public boolean collision = false;
-
-
 
     public Entity(gamePanel gp){
         this.gp = gp;
     }
 
-    //Accion del NPC
     public void setAction() { }
+
     public void speak() {
-        //Dialogos generales
+
         if(dialogues[dialogueIndex] == null){
             dialogueIndex = 0;
         }
@@ -69,11 +62,9 @@ public class Entity {
                 break;
         }
     }
-    //Update
+
     public void update() {
-        //Actualizamos el NPC
         setAction();
-        // activacion/desactivacion de la colision
         collisionOn = false;
 
         gp.cChecker.checkTile(this);
@@ -81,7 +72,6 @@ public class Entity {
         gp.cChecker.checkPlayer(this);
         gp.cChecker.checkEntity(this, gp.npc);
 
-        //Condicion para colision
         if (!collisionOn) {
             switch (direction) {
                 case Arriba -> worldY -= speed;
@@ -98,8 +88,6 @@ public class Entity {
         }
     }
 
-
-    // metodo para cargar el dibujo
     public void draw(Graphics2D g2) {
 
         if (gp.currentMap != mapIndex) {
@@ -123,7 +111,6 @@ public class Entity {
         }
     }
 
-    // Carga de las imagenes de las entidades
     protected BufferedImage setup(String imagePatch) {
         UtilityTool uTool = new UtilityTool();
         BufferedImage image = null;
@@ -136,7 +123,5 @@ public class Entity {
         return image;
     }
 
-    // esto va en Items atribute que no existe aun pero fue cambiado al cambiar las entidades y objetos
     public String descripcion = "";
-
 }

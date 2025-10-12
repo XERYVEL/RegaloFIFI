@@ -13,12 +13,8 @@ public class Player extends Entity {
     public final int screenX;
     public final int screenY;
 
-    // Contadores de objetos
-    public int gpsCount = 0;
     public int panDeAjoCount = 0;
-    public int valePorComidaCount = 0;
 
-    //inventario
     public ArrayList<Entity> inventory = new ArrayList<>();
     public final int maxInventorySize = 20;
 
@@ -47,14 +43,13 @@ public class Player extends Entity {
 
     public void setDefaultValues() {
 
-        worldX = 47 * gp.tileSize; //posicion del Player
+        worldX = 47 * gp.tileSize;
         worldY = 4 * gp.tileSize;
         speed = 2;
         direction = Direccion.Abajo;
     }
 
     public void setItems() {
-        //cargar el listado de los items iniciales
         inventory.add(new OBJ_sube(gp));
 
     }
@@ -75,7 +70,7 @@ public class Player extends Entity {
         if (gp.ui.gameFinished || gp.ui.gameOver) {
             return;
         }
-        //inicializacion de la colision
+
         collisionOn = false;
         if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
             if (keyH.upPressed) direction = Direccion.Arriba;
@@ -83,33 +78,23 @@ public class Player extends Entity {
             else if (keyH.leftPressed) direction = Direccion.Izquierda;
             else if (keyH.rightPressed) direction = Direccion.Derecha;
 
-            // corroboramos la colision con el entorno
             gp.cChecker.checkTile(this);
 
-
-            // corroboramos la colision con los objetos
             int objIndex = gp.cChecker.checkObject(this, true);
             pickUpObject(objIndex);
 
-//            gp.keyH.enterPressed = false;
 
-            //Verificacion de si existen NPCs
             if(gp.npc[gp.currentMap] != null) {
-                // corroboramos la colision con NPCs
                 int npcIndex = gp.cChecker.checkEntity(this, gp.npc);
                 interactNPC(npcIndex);
             }
 
-
-            // corroboramos colision evento
+            gp.eHandler.checkEvent();
             gp.eHandler.checkEvent();
 
-            // corroboramos colision evento
-            gp.eHandler.checkEvent();
 
             gp.keyH.enterPressed = false;
 
-            //Condicion para colision
             if (!collisionOn) {
                 switch (direction) {
                     case Arriba -> worldY -= speed;
@@ -127,7 +112,6 @@ public class Player extends Entity {
         }
     }
 
-    // Método para recoger objetos, insensible a mayúsculas y espacios
     public void pickUpObject(int i) {
         if (i != 999 && gp.obj[gp.currentMap][i] != null) {
             Entity obj =gp.obj[gp.currentMap][i];
@@ -141,29 +125,13 @@ public class Player extends Entity {
 
             inventory.add(obj);
 
-            if (objectName.contains("gps")) {
-                gpsCount++;
-                gp.playSE(1);
-                gp.ui.showMessage("Tienes el GPS de la nave!!");
-                System.out.println("GPS: " + gpsCount);
-
-            } else if (objectName.contains("pan de ajo")) {
+            if (objectName.contains("pan de ajo")) {
                 panDeAjoCount++;
                 gp.playSE(1);
+                speed += 1;
                 gp.ui.showMessage("Tienes el pan de ajo!!");
                 System.out.println("Pan de Ajo: " + panDeAjoCount);
 
-            } else if (objectName.contains("vale por comida")) {
-                valePorComidaCount++;
-                gp.playSE(1);
-                speed += 1;
-                gp.ui.showMessage("Tienes el vale por comida!!");
-                System.out.println("Vale por comida: " + valePorComidaCount);
-
-            } else if (objectName.contains("chest")) {
-                gp.ui.gameFinished = true;
-                gp.stopMusic();
-                gp.playSE(3);
             } else {
                 gp.playSE(1);
                 gp.ui.showMessage("Has recogido:" + obj.name);

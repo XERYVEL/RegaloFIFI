@@ -7,7 +7,7 @@ public class KeyHandler implements KeyListener{
 
     gamePanel gp;
     public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed;
-  // DEBUG.
+
     boolean checkDrawTime = false;
 
     public KeyHandler(gamePanel gp) {
@@ -21,104 +21,90 @@ public class KeyHandler implements KeyListener{
     public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
 
-        // TITLE STATE
         if(gp.gameState == gp.titleState) {
-            if(gp.ui.titleScreenState == 0){
+            titleState(code);
+        }
+
+        if(gp.gameState == gp.playState){
+            playState(code);
+        }
+
+        else if(gp.gameState == gp.dialogueState) {
+            dialogueState(code);
+        }
+
+        else if(gp.gameState == gp.gameOverState) {
+            gameOverState(code);
+        }
+
+        else if(gp.gameState == gp.characterState) {
+            characterState(code);
+        }
+    }
+
+    public void titleState(int code) {
+        if(gp.ui.titleScreenState == 0){
+            if(code == KeyEvent.VK_W) {
+                gp.ui.commandNum--;
+                if(gp.ui.commandNum < 0) {
+                    gp.ui.commandNum = 1;
+                }
+            }
+            if(code == KeyEvent.VK_S) {
+                gp.ui.commandNum++;
+                if(gp.ui.commandNum > 1) {
+                    gp.ui.commandNum = 0;
+                }
+            }
+            if(code == KeyEvent.VK_ENTER) {
+                if(gp.ui.commandNum == 0) {
+                    gp.reloj.reiniciarTiempo();
+                    gp.gameState = gp.playState;
+
+                }
+                if(gp.ui.commandNum == 1) {
+                    System.exit(0);
+                }
+            }
+            else if(gp.gameState == gp.playState){
                 if(code == KeyEvent.VK_W) {
                     gp.ui.commandNum--;
                     if(gp.ui.commandNum < 0) {
-                        gp.ui.commandNum = 1;
+                        gp.ui.commandNum = 3;
                     }
                 }
                 if(code == KeyEvent.VK_S) {
                     gp.ui.commandNum++;
-                    if(gp.ui.commandNum > 1) {
+                    if(gp.ui.commandNum > 3) {
                         gp.ui.commandNum = 0;
                     }
                 }
                 if(code == KeyEvent.VK_ENTER) {
                     if(gp.ui.commandNum == 0) {
-                        gp.reloj.reiniciarTiempo();
+                        System.out.println("Haz algunas cosas especificas de...");
                         gp.gameState = gp.playState;
-
+                        gp.reloj.reiniciarTiempo();
+                        gp.ui.titleScreenState = 1;
+                        gp.playMusic(0);
                     }
                     if(gp.ui.commandNum == 1) {
-                        System.exit(0);
+                        System.out.println("Haz algunas cosas especificas de...");
+                        gp.gameState = gp.playState;
+                        gp.playMusic(0);
                     }
-                }
-                else if(gp.gameState == gp.playState){
-                    if(code == KeyEvent.VK_W) {
-                        gp.ui.commandNum--;
-                        if(gp.ui.commandNum < 0) {
-                            gp.ui.commandNum = 3;
-                        }
+                    if(gp.ui.commandNum == 2) {
+                        System.out.println("Haz algunas cosas especificas de...");
+                        gp.gameState = gp.playState;
+                        gp.playMusic(0);
                     }
-                    if(code == KeyEvent.VK_S) {
-                        gp.ui.commandNum++;
-                        if(gp.ui.commandNum > 3) {
-                            gp.ui.commandNum = 0;
-                        }
-                    }
-                    if(code == KeyEvent.VK_ENTER) {
-                        if(gp.ui.commandNum == 0) {
-                            System.out.println("Haz algunas cosas especificas de...");
-                            gp.gameState = gp.playState;
-                            gp.reloj.reiniciarTiempo();
-                            gp.ui.titleScreenState = 1;
-                            gp.playMusic(0);
-                        }
-                        if(gp.ui.commandNum == 1) {
-                            System.out.println("Haz algunas cosas especificas de...");
-                            gp.gameState = gp.playState;
-                            gp.playMusic(0);
-                        }
-                        if(gp.ui.commandNum == 2) {
-                            System.out.println("Haz algunas cosas especificas de...");
-                            gp.gameState = gp.playState;
-                            gp.playMusic(0);
-                        }
-                        if(gp.ui.commandNum == 3) {
-                            gp.gameState = gp.titleState;
+                    if(gp.ui.commandNum == 3) {
+                        gp.gameState = gp.titleState;
 
-                        }
                     }
                 }
             }
-
         }
 
-        //titleState
-        if(gp.gameState == gp.titleState) {
-            //llamamos el metodo titleState
-            titleState(code);
-        }
-        //playState
-        if(gp.gameState == gp.playState){
-            //llamamos el metodo playState
-            playState(code);
-        }
-
-        // dialogueState
-        else if(gp.gameState == gp.dialogueState) {
-            //llamamos el metodo dialogueState
-            dialogueState(code);
-        }
-
-        // gameOverState
-        else if(gp.gameState == gp.gameOverState) {
-            //llamamos el metodo gameOverState
-            gameOverState(code);
-        }
-
-        // characterState
-        else if(gp.gameState == gp.characterState) {
-            //llamamos el metodo characterState
-            characterState(code);
-        }
-    }
-
-    //Carga de las funciones de game state
-    public void titleState(int code) {
 
     }
     public void playState(int code) {
@@ -142,7 +128,6 @@ public class KeyHandler implements KeyListener{
             enterPressed = true;
         }
 
-        // DEBUG.
         if(code == KeyEvent.VK_T) {
             if (checkDrawTime == false) {
                 checkDrawTime = true;

@@ -60,19 +60,15 @@ public class CollisionChecker {
         }
     }
 
-    //metodo para generar la colision entre 1 objeto y el player
-
     public int checkObject(Entity entity, boolean player) {
 
         int index = 999;
 
         for (int i = 0; i < gp.obj[1].length; i++) {
             if (gp.obj[gp.currentMap][i] != null) {
-                // conseguimos el area de la posicion de la entidad
                 entity.solidArea.x = entity.worldX + entity.solidArea.x;
                 entity.solidArea.y = entity.worldY + entity.solidArea.y;
 
-                // conseguimos el area de la posicion del objeto
                 gp.obj[gp.currentMap][i].solidArea.x = gp.obj[gp.currentMap][i].worldX + gp.obj[gp.currentMap][i].solidArea.x;
                 gp.obj[gp.currentMap][i].solidArea.y = gp.obj[gp.currentMap][i].worldY + gp.obj[gp.currentMap][i].solidArea.y;
 
@@ -131,13 +127,11 @@ public class CollisionChecker {
         return index;
     }
 
-    // Colision entre NPC / player
     public int checkEntity(Entity entity, Entity[][] target) {
         int index = 999;
         for (int i = 0; i < target[1].length; i++) {
             if (target[gp.currentMap][i] != null && target[gp.currentMap][i] != entity) {
 
-                // Recalcular posiciones absolutas para colisión
                 entity.solidArea.x = entity.worldX + entity.solidAreaDefaultX;
                 entity.solidArea.y = entity.worldY + entity.solidAreaDefaultY;
                 target[gp.currentMap][i].solidArea.x = target[gp.currentMap][i].worldX + target[gp.currentMap][i].solidAreaDefaultX;
@@ -187,12 +181,9 @@ public class CollisionChecker {
     }
 
     public void checkPlayer(Entity entity) {
-
-        // conseguimos el area de la posicion de la entidad
         entity.solidArea.x = entity.worldX + entity.solidAreaDefaultX;
         entity.solidArea.y = entity.worldY + entity.solidAreaDefaultY;
 
-        // conseguimos el area de la posicion del objeto
         gp.player.solidArea.x = gp.player.worldX + gp.player.solidAreaDefaultX;
         gp.player.solidArea.y = gp.player.worldY + gp.player.solidAreaDefaultY;
 

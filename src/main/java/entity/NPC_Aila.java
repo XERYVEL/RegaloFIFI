@@ -22,7 +22,6 @@ public class NPC_Aila extends Entity {
         down2 = setup("/NPC_Aila/Aila");
     }
 
-
     public void setColisionArea() {
         solidAreaDefaultX = 0;
         solidAreaDefaultY = 0;
@@ -53,7 +52,6 @@ public class NPC_Aila extends Entity {
         dialogues[12] = "*es una vampira!*";
         dialogues[13] = "Ah, con que ya lo descubriste";
 
-        // Mostramos el diálogo actual
         if (dialogueIndexNPC < dialogues.length && dialogues[dialogueIndexNPC] != null) {
             gp.ui.currentDialogue = dialogues[dialogueIndexNPC];
             dialogueIndexNPC++;
@@ -62,7 +60,6 @@ public class NPC_Aila extends Entity {
             gp.ui.currentDialogue = "Solo vete... no te quiero ver mas!!!";
         }
 
-        // Activar pelea al final del diálogo
         if (contador == 14 && !dialogoTerminado) {
             activarPelea();
             activarFinal = true;
@@ -70,10 +67,8 @@ public class NPC_Aila extends Entity {
     }
 
     private void activarPelea() {
-        // Usamos el Reloj que ya existe en el gamePanel
         Pelea pelea = new Pelea(gp);
 
-        // Obtenemos la panadera correcta del mapa (asegurarse de que sea instancia de NPC_Panadera)
         NPC_Panadera panadera = null;
         for (int i = 0; i < gp.maxWorldCol; i++) {
             for (int j = 0; j < gp.maxWorldRow; j++) {
@@ -86,7 +81,7 @@ public class NPC_Aila extends Entity {
         }
 
         if (panadera != null) {
-            pelea.iniciarCombate(panadera); // ⚡ Usamos el reloj interno de Pelea que apunta a gp.reloj
+            pelea.iniciarCombate(panadera);
         } else {
             System.out.println("No se encontró la Panadera en el mapa");
         }
