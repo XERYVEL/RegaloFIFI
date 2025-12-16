@@ -32,20 +32,21 @@ public class Entity {
 
     public String name;
     public boolean collision = false;
+    public String descripcion = "";
 
-    public Entity(gamePanel gp){
+    public Entity(gamePanel gp) {
         this.gp = gp;
     }
 
-    public void setAction() { }
+    public void setAction() {
+    }
 
     public void speak() {
-
-        if(dialogues[dialogueIndex] == null){
+        if (dialogues[dialogueIndex] == null) {
             dialogueIndex = 0;
         }
         gp.ui.currentDialogue = dialogues[dialogueIndex];
-        dialogueIndex ++;
+        dialogueIndex++;
 
         switch (gp.player.direction) {
             case Arriba:
@@ -68,9 +69,6 @@ public class Entity {
         collisionOn = false;
 
         gp.cChecker.checkTile(this);
-        gp.cChecker.checkObject(this,true);
-        gp.cChecker.checkPlayer(this);
-        gp.cChecker.checkEntity(this, gp.npc);
 
         if (!collisionOn) {
             switch (direction) {
@@ -89,39 +87,87 @@ public class Entity {
     }
 
     public void draw(Graphics2D g2) {
-
         if (gp.currentMap != mapIndex) {
             return;
         }
-        BufferedImage image = null;
-        int screenX = worldX - gp.player.worldX + gp.player.screenX;
-        int screenY = worldY - gp.player.worldY + gp.player.screenY;
-        if(worldX + gp.tileSize > gp.player.worldX - gp.player.screenX &&
-                worldX - gp.tileSize < gp.player.worldX + gp.player.screenX &&
-                worldY + gp.tileSize > gp.player.worldY - gp.player.screenY &&
-                worldY - gp.tileSize < gp.player.worldY + gp.player.screenY){
 
-            switch (direction) {
-                case Arriba -> image = (spriteNum == 1) ? up1 : up2;
-                case Abajo -> image = (spriteNum == 1) ? down1 : down2;
-                case Izquierda -> image = (spriteNum == 1) ? left1 : left2;
-                case Derecha -> image = (spriteNum == 1) ? right1 : right2;
-            }
-            g2.drawImage(image, screenX, screenY, gp.tileSize, gp.tileSize, null);
+        BufferedImage image = null;
+
+        switch (direction) {
+            case Arriba -> image = (spriteNum == 1) ? up1 : up2;
+            case Abajo -> image = (spriteNum == 1) ? down1 : down2;
+            case Izquierda -> image = (spriteNum == 1) ? left1 : left2;
+            case Derecha -> image = (spriteNum == 1) ? right1 : right2;
+        }
+
+        if (image != null) {
+            g2.drawImage(image, worldX, worldY, gp.tileSize, gp.tileSize, null);
+        } else {
+            // Si no hay imagen, dibujar un cuadrado de color
+            g2.setColor(Color.BLUE);
+            g2.fillRect(worldX, worldY, gp.tileSize, gp.tileSize);
         }
     }
 
-    protected BufferedImage setup(String imagePatch) {
+    protected BufferedImage setup(String imagePath) {
         UtilityTool uTool = new UtilityTool();
         BufferedImage image = null;
         try {
-            image = ImageIO.read(getClass().getResourceAsStream(imagePatch + ".png"));
+            java.io.InputStream is = getClass().getResourceAsStream(imagePath + ".png");
+
+            if (is == null) {
+                System.out.println("Imagen no encontrada: " + imagePath + ", creando sprite de color");
+                return createColoredSprite(gp.tileSize, gp.tileSize);
+            }
+
+            image = ImageIO.read(is);
             image = uTool.scaleImage(image, gp.tileSize, gp.tileSize);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error cargando imagen " + imagePath + ": " + e.getMessage());
+            return createColoredSprite(gp.tileSize, gp.tileSize);
         }
         return image;
     }
 
-    public String descripcion = "";
+    private BufferedImage createColoredSprite(int width, int height) {
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = image.createGraphics();
+
+        // Color base según el tipo de entidad
+        Color mainColor;
+        if (this.getClass().getSimpleName().contains("Player")) {
+            // Diferenciar jugadores por número si es posible
+            Player p = (Player) this;
+            if (p.playerNumber == 1) {
+                mainColor = new Color(0, 120, 255); // Azul para Player 1
+            } else {
+                mainColor = new Color(255, 50, 50); // Rojo para Player 2
+            }
+        } else if (this.getClass().getSimpleName().contains("NPC")) {
+            mainColor = new Color(255, 150, 0); // Naranja para NPCs
+        } else {
+            mainColor = new Color(150, 150, 150); // Gris para objetos
+        }
+
+        // Cuerpo
+        g2.setColor(mainColor);
+        g2.fillRect(width / 4, height / 3, width / 2, height / 2);
+
+        // Cabeza
+        g2.setColor(new Color(255, 220, 177));
+        g2.fillOval(width / 3, height / 8, width / 3, width / 3);
+
+        // Ojos
+        g2.setColor(Color.BLACK);
+        g2.fillOval(width / 3 + 5, height / 8 + 8, 4, 4);
+        g2.fillOval(width / 3 + width / 3 - 9, height / 8 + 8, 4, 4);
+
+        // Borde
+        g2.setColor(Color.BLACK);
+        g2.setStroke(new BasicStroke(2));
+        g2.drawRect(1, 1, width - 2, height - 2);
+
+        g2.dispose();
+        return image;
+    }
 }
