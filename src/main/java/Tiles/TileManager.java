@@ -83,7 +83,7 @@ public class TileManager {
                 g2.setColor(new Color(0, 0, 0, 0));
                 break;
             case 1: // Plataforma - marrón
-                g2.setColor(new Color(139, 69, 19));
+                g2.setColor(new Color(139, 69, 13));
                 break;
             case 2: // Plataforma alternativa - gris
                 g2.setColor(new Color(128, 128, 128));
@@ -157,7 +157,7 @@ public class TileManager {
 
         // ===== PISO PRINCIPAL =====
         for (int col = 0; col < 20; col++) {
-            mapTileNum[map][col][19] = 1; // Fila 19 (última fila)
+            mapTileNum[map][col][13] = 1;
         }
 
         // ===== PLATAFORMAS BAJAS =====
@@ -184,7 +184,7 @@ public class TileManager {
 
         // Centro-izquierda media
         for (int col = 6; col <= 8; col++) {
-            mapTileNum[map][col][14] = 1;
+            mapTileNum[map][col][13] = 1;
         }
 
         // Centro-derecha media
@@ -209,7 +209,7 @@ public class TileManager {
         }
 
         // Derecha alta
-        for (int col = 14; col <= 16; col++) {
+        for (int col = 13; col <= 16; col++) {
             mapTileNum[map][col][10] = 1;
         }
 
@@ -250,8 +250,8 @@ public class TileManager {
         mapTileNum[map][0][18] = 1;
 
         // Decoración: torre derecha
-        mapTileNum[map][19][17] = 1;
-        mapTileNum[map][19][18] = 1;
+        mapTileNum[map][13][17] = 1;
+        mapTileNum[map][13][18] = 1;
 
         System.out.println("Mapa de plataformas 20x20 creado exitosamente");
     }

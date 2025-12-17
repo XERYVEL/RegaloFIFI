@@ -17,8 +17,8 @@ public class gamePanel extends JPanel implements Runnable {
 
     public VideosSwing videos;
     public int tileSize = originalTileSize * scale;
-    public final int maxScreenCol = 20;  // Cambiado a 20
-    public final int maxScreenRow = 20;  // Cambiado a 20
+    public final int maxScreenCol = 20;  // Ancho: 20
+    public final int maxScreenRow = 14;  // Alto: 14
     public final int screenWidth = tileSize * maxScreenCol;
     public final int screenHeight = tileSize * maxScreenRow;
 
@@ -26,8 +26,8 @@ public class gamePanel extends JPanel implements Runnable {
     public boolean videoMostrado2 = false;
     public boolean tieneCupon = false;
 
-    public final int maxWorldCol = 20;  // Cambiado a 20
-    public final int maxWorldRow = 20;  // Cambiado a 20
+    public final int maxWorldCol = 20;  // Ancho: 20
+    public final int maxWorldRow = 14;  // Alto: 14
     public final int maxMap = 10;
     public int currentMap = 0;
 

@@ -79,8 +79,9 @@ public class KeyHandler implements KeyListener{
                     }
                     gp.gameState = gp.playState;
                     gp.playMusic(7);
+                    System.out.println("Iniciando juego - commandNum: " + gp.ui.commandNum);
                 }
-                if(gp.ui.commandNum == 1) {
+                else if(gp.ui.commandNum == 1) {
                     // Salir
                     System.exit(0);
                 }
