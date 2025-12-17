@@ -55,10 +55,10 @@ public class Player extends Entity {
     public void setDefaultValues() {
         if(playerNumber == 1) {
             worldX = 2 * gp.tileSize;
-            worldY = 18 * gp.tileSize;
+            worldY = 12 * gp.tileSize;  // Cambiado de 18 a 12 (sobre el piso que está en fila 13)
         } else {
             worldX = 4 * gp.tileSize;
-            worldY = 18 * gp.tileSize;
+            worldY = 12 * gp.tileSize;  // Cambiado de 18 a 12
         }
         speed = 4; // Velocidad horizontal
         direction = Direccion.Derecha;
