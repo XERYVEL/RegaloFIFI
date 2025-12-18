@@ -12,8 +12,8 @@ public class EventHandler {
     EventRect eventRect [][][];
 
     private boolean llamo = false;
-    private  boolean piensa =false;
-    private  boolean vioGPS =false;
+    private boolean piensa = false;
+    private boolean vioGPS = false;
 
     int previousEventX, previousEventY;
 
@@ -28,7 +28,7 @@ public class EventHandler {
         int col = 0;
         int row = 0;
 
-        while(map < gp.maxMap && col < gp.maxWorldCol &&  row < gp.maxWorldRow){
+        while(map < gp.maxMap && col < gp.maxWorldCol && row < gp.maxWorldRow){
 
             eventRect [map][col][row] = new EventRect();
 
@@ -63,64 +63,30 @@ public class EventHandler {
         }
 
         if (canTouchEvent) {
-            if(hit(0, 24, 2, Direccion.Izquierda)||hit(0, 24, 3, Direccion.Izquierda)||hit(0, 24, 4, Direccion.Izquierda)||hit(0, 24, 27, Direccion.Izquierda)||hit(0, 24, 28, Direccion.Izquierda)||hit(0, 24, 29, Direccion.Izquierda)){
-                if(!gp.videoMostrado){
-                    gp.videoMostrado = true;
-                    gp.showVideo("pavon");
-                    if(gp.videoMostrado && gp.npc[0][1] instanceof NPC_Pavon) {
-                        gp.npc[0][1] = null;
-                    }
-                }
+            // MAPA 0 es 20x12 (columnas 0-19, filas 0-11)
+
+            // Evento de interacción en el centro del mapa
+            if (hit(0, 10, 5, Direccion.Arriba)) {
+                interactuarEntorno(0, 10, 5, gp.dialogueState);
             }
 
-            else if(hit(2, 8, 28, Direccion.Izquierda)) {
-                if (gp.npc[1][2] instanceof NPC_Aila && gp.npc[2][3] instanceof NPC_LupeMarciana) {
-
-                    NPC_Aila aila = (NPC_Aila) gp.npc[1][2];
-                    NPC_LupeMarciana marciana = (NPC_LupeMarciana) gp.npc[2][3];
-
-                    if (!gp.videoMostrado2 && aila.activarFinal && marciana.tieneGPS) {
-
-                        gp.videoMostrado2 = true;
-                        gp.showVideo("monu");
-
-                        gp.playSE(6);
-
-                    }
-                }
-            }
-
-            else if (hit(0, 5, 7, Direccion.Arriba)) {
-                interactuarEntorno(0, 5, 7, gp.dialogueState);
-            }
-
-            else if (hit(0, 20, 26, Direccion.Any)) { teleport(1, 38, 32); }
-            else if (hit(1, 38, 32, Direccion.Any)) { teleport(2, 4, 48); }
-            else if (hit(2, 9, 28, Direccion.Any)) { teleport(2, 40, 9); }
-            else if (hit(2, 40, 9, Direccion.Any)) { teleport(2, 9, 28); }
-
-            else if (hit(0, 19, 14, Direccion.Derecha)|| hit(0, 19, 15, Direccion.Derecha) ) {
-                if(llamo == false){
-                    llamada(gp.dialogueState);
-                    llamo = true;
-                }
-            }
-
-            else if (hit(0,20,14,Direccion.Derecha)||hit(0,20,15, Direccion.Derecha)){
+            // Evento al llegar al borde derecho (cerca de ganar)
+            if (hit(0, 19, 10, Direccion.Derecha)) {
                 if(!piensa){
                     mensajeLugar(gp.dialogueState);
-                    mensajeLugar(gp.dialogueState);
-                    piensa =true;
+                    piensa = true;
                 }
             }
 
-            else if (hit(2,41,9,Direccion.Any)){
-                if(gp.npc[2][3]instanceof NPC_LupeMarciana){
-                    NPC_LupeMarciana marciana = (NPC_LupeMarciana) gp.npc[2][3];
-                    if(marciana.tieneGPS && !vioGPS){
-                        mensajeGPS(gp.dialogueState);
-                        vioGPS =true;
-                    }
+            // Evento al llegar a la plataforma superior (objetivo - fila 1)
+            // Detectar si cualquier jugador llega a la cima
+            if (hit(0, 8, 1, Direccion.Any) ||
+                    hit(0, 9, 1, Direccion.Any) ||
+                    hit(0, 10, 1, Direccion.Any) ||
+                    hit(0, 11, 1, Direccion.Any)) {
+                if(!llamo) {
+                    victoria(gp.dialogueState);
+                    llamo = true;
                 }
             }
         }
@@ -130,26 +96,38 @@ public class EventHandler {
     public boolean hit(int map, int col, int row, Direccion reqDirection){
         boolean hit = false;
 
+        // Validar que las coordenadas estén dentro del rango
+        if(col < 0 || col >= gp.maxWorldCol || row < 0 || row >= gp.maxWorldRow) {
+            return false;
+        }
+
         if (map == gp.currentMap) {
+            // Verificar ambos jugadores
+            Player[] players = {gp.player, gp.player2};
 
-            gp.player.solidArea.x = gp.player.worldX + gp.player.solidArea.x;
-            gp.player.solidArea.y = gp.player.worldY + gp.player.solidArea.y;
-            eventRect[map][col][row].x = col * gp.tileSize + eventRect[map][col][row].x;
-            eventRect[map][col][row].y = row * gp.tileSize + eventRect[map][col][row].y;
+            for(Player player : players) {
+                if(player == null) continue;
 
-            if(gp.player.solidArea.intersects(eventRect[map][col][row]) && eventRect[map][col][row].eventDone == false) {
+                player.solidArea.x = player.worldX + player.solidArea.x;
+                player.solidArea.y = player.worldY + player.solidArea.y;
+                eventRect[map][col][row].x = col * gp.tileSize + eventRect[map][col][row].x;
+                eventRect[map][col][row].y = row * gp.tileSize + eventRect[map][col][row].y;
 
-                if(gp.player.direction == reqDirection || reqDirection == Direccion.Any){
-                    hit = true;
+                if(player.solidArea.intersects(eventRect[map][col][row]) && eventRect[map][col][row].eventDone == false) {
 
+                    if(player.direction == reqDirection || reqDirection == Direccion.Any){
+                        hit = true;
 
-                    previousEventX = gp.player.worldX;
-                    previousEventY = gp.player.worldY;
+                        previousEventX = player.worldX;
+                        previousEventY = player.worldY;
+                        break; // Un jugador es suficiente
+                    }
                 }
+
+                player.solidArea.x = player.solidAreaDefaultX;
+                player.solidArea.y = player.solidAreaDefaultY;
             }
 
-            gp.player.solidArea.x = gp.player.solidAreaDefaultX;
-            gp.player.solidArea.y = gp.player.solidAreaDefaultY;
             eventRect[map][col][row].x = eventRect[map][col][row].eventRectDefaultX;
             eventRect[map][col][row].y = eventRect[map][col][row].eventRectDefaultY;
         }
@@ -158,37 +136,37 @@ public class EventHandler {
 
     public void mensajeLugar(int gameState) {
         gp.gameState = gameState;
-        gp.ui.currentDialogue = "*PENSANDO*\nPavon dijo que se iba a la galeria...\nAlla voy Pavon";
+        gp.ui.currentDialogue = "Casi llegas a la cima!\nSigue subiendo!";
         canTouchEvent = false;
     }
 
     public void interactuarEntorno(int map, int col, int row, int gameState) {
         if(gp.keyH.enterPressed == true) {
             gp.gameState = gameState;
-            gp.ui.currentDialogue = "No dice nada";
+            gp.ui.currentDialogue = "Una plataforma misteriosa...";
             eventRect[map][col][row].eventDone = true;
         }
     }
 
+    public void victoria(int gameState) {
+        gp.playSE(2); // Sonido de victoria
+        gp.ui.gameFinished = true;
+        canTouchEvent = false;
+
+        // Detener el reloj
+        gp.reloj.actualizarTiempo();
+    }
+
     public void teleport(int map, int col, int row) {
+        if(col < 0 || col >= gp.maxWorldCol || row < 0 || row >= gp.maxWorldRow) {
+            return;
+        }
+
         gp.currentMap = map;
         gp.player.worldX = gp.tileSize * col;
         gp.player.worldY = gp.tileSize * row;
         previousEventX = gp.player.worldX;
         previousEventY = gp.player.worldY;
-        canTouchEvent = false;
-        gp.ui.currentDialogue = "Teleport";
-    }
-
-    public void llamada(int gameState) {
-        gp.gameState = gameState;
-        gp.playSE(4);
-        gp.ui.currentDialogue = "\"Volpin! Soy Sebas, \n secuestraron a Pavon... \n Resolve\"";
-    }
-
-    public void mensajeGPS(int gameState) {
-        gp.gameState = gameState;
-        gp.ui.currentDialogue = "*PENSANDO*\nEl GPS dice qque esta en el monumento";
         canTouchEvent = false;
     }
 }

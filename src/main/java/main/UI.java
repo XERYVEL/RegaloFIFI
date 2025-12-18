@@ -45,24 +45,20 @@ public class UI {
             if (gp.player != null && gp.player.down1 != null) {
                 x = gp.screenWidth / 2 - (gp.tileSize * 3);
 
-                // Label P1
                 g2.setFont(g2.getFont().deriveFont(Font.BOLD, 24F));
                 g2.setColor(new Color(0, 150, 255));
                 g2.drawString("P1", x + 20, y - 10);
 
-                // Sprite P1
                 g2.drawImage(gp.player.down1, x, y, gp.tileSize * 2, gp.tileSize * 2, null);
             }
 
             if (gp.player2 != null && gp.player2.down1 != null) {
                 x = gp.screenWidth / 2 + gp.tileSize;
 
-                // Label P2
                 g2.setFont(g2.getFont().deriveFont(Font.BOLD, 24F));
                 g2.setColor(new Color(255, 50, 50));
                 g2.drawString("P2", x + 20, y - 10);
 
-                // Sprite P2
                 g2.drawImage(gp.player2.down1, x, y, gp.tileSize * 2, gp.tileSize * 2, null);
             }
 
@@ -93,26 +89,217 @@ public class UI {
             g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 22F));
             y += gp.tileSize * 2;
 
-            // P1
             g2.setColor(new Color(0, 150, 255));
             text = "P1: W (Saltar) A/D (Mover)";
             x = getXforCenteredText(text);
             g2.drawString(text, x, y);
 
-            // P2
             y += 30;
             g2.setColor(new Color(255, 50, 50));
             text = "P2: ↑ (Saltar) ←/→ (Mover)";
             x = getXforCenteredText(text);
             g2.drawString(text, x, y);
 
-            // Objetivo
             y += 50;
             g2.setColor(new Color(150, 255, 150));
             g2.setFont(g2.getFont().deriveFont(Font.BOLD, 20F));
             text = "¡Llega a la cima del mapa!";
             x = getXforCenteredText(text);
             g2.drawString(text, x, y);
+        }
+    }
+
+    public void drawLevelSelectScreen() {
+        // Fondo negro
+        g2.setColor(new Color(0, 0, 0));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        // Título
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F));
+        g2.setColor(Color.white);
+        String text = "Selecciona un Nivel";
+        int x = getXforCenteredText(text);
+        g2.drawString(text, x, gp.tileSize);
+
+        // MENSAJE OCULTO DE FONDO (se revelará con los niveles completados)
+        drawHiddenMessage();
+
+        // Dibujar grilla de niveles 4x4
+        int levelSize = gp.tileSize + 16; // Tamaño de cada cuadrado de nivel
+        int gridStartX = (gp.screenWidth - (levelSize * 4 + 30)) / 2; // 30 = espacios entre cuadrados
+        int gridStartY = gp.tileSize * 2;
+
+        for(int row = 0; row < 4; row++) {
+            for(int col = 0; col < 4; col++) {
+                int levelIndex = row * 4 + col;
+                int levelX = gridStartX + col * (levelSize + 10);
+                int levelY = gridStartY + row * (levelSize + 10);
+
+                // Determinar estado del nivel
+                boolean completed = gp.levelCompleted[levelIndex];
+                boolean selected = (levelIndex == gp.selectedLevel);
+                boolean unlocked = (levelIndex == 0) || gp.levelCompleted[levelIndex - 1]; // Desbloqueado si es el primero o si el anterior está completado
+
+                // Dibujar cuadrado del nivel
+                if(completed) {
+                    // Nivel completado - MUY transparente para mostrar el mensaje
+                    g2.setColor(new Color(50, 200, 50, 20));
+                    g2.fillRoundRect(levelX, levelY, levelSize, levelSize, 15, 15);
+
+                    // Borde verde
+                    g2.setColor(new Color(50, 255, 50,30));
+                    g2.setStroke(new BasicStroke(3));
+                    g2.drawRoundRect(levelX, levelY, levelSize, levelSize, 15, 15);
+
+                    // Marca de completado (check dibujado)
+                    g2.setColor(new Color(50, 255, 50,30));
+                    g2.setStroke(new BasicStroke(4));
+
+                    int checkCenterX = levelX + levelSize/2;
+                    int checkCenterY = levelY + levelSize/2;
+
+                    // Dibujar check con dos líneas
+                    // Línea corta (parte izquierda del check)
+                    g2.drawLine(checkCenterX - 10, checkCenterY + 5,
+                            checkCenterX - 3, checkCenterY + 12);
+                    // Línea larga (parte derecha del check)
+                    g2.drawLine(checkCenterX - 3, checkCenterY + 12,
+                            checkCenterX + 12, checkCenterY - 8);
+                } else if(!unlocked) {
+                    // Nivel bloqueado - muy oscuro y con candado
+                    g2.setColor(new Color(30, 30, 30, 220));
+                    g2.fillRoundRect(levelX, levelY, levelSize, levelSize, 15, 15);
+
+                    // Borde rojo/oscuro
+                    g2.setColor(new Color(80, 40, 40));
+                    g2.setStroke(new BasicStroke(2));
+                    g2.drawRoundRect(levelX, levelY, levelSize, levelSize, 15, 15);
+
+                    // Candado dibujado con formas
+                    g2.setColor(new Color(150, 50, 50));
+                    g2.setStroke(new BasicStroke(3));
+
+                    int lockCenterX = levelX + levelSize/2;
+                    int lockCenterY = levelY + levelSize/2;
+
+                    // Cuerpo del candado (rectángulo)
+                    g2.fillRoundRect(lockCenterX - 12, lockCenterY, 24, 20, 5, 5);
+
+                    // Arco del candado
+                    g2.drawArc(lockCenterX - 10, lockCenterY - 15, 20, 20, 0, 180);
+                } else {
+                    // Nivel desbloqueado pero no completado
+                    g2.setColor(new Color(60, 60, 80, 180));
+                    g2.fillRoundRect(levelX, levelY, levelSize, levelSize, 15, 15);
+
+                    // Borde normal
+                    g2.setColor(new Color(100, 100, 120));
+                    g2.setStroke(new BasicStroke(2));
+                    g2.drawRoundRect(levelX, levelY, levelSize, levelSize, 15, 15);
+                }
+
+                // Borde de selección
+                if(selected) {
+                    g2.setColor(Color.YELLOW);
+                    g2.setStroke(new BasicStroke(4));
+                    g2.drawRoundRect(levelX - 3, levelY - 3, levelSize + 6, levelSize + 6, 15, 15);
+                }
+
+                // Número del nivel
+                g2.setFont(g2.getFont().deriveFont(Font.BOLD, 32F));
+                if(completed) {
+                    g2.setColor(new Color(150, 150, 150, 100)); // Gris apagado y transparente
+                } else if(!unlocked) {
+                    g2.setColor(new Color(100, 100, 100)); // Gris para bloqueados
+                } else {
+                    g2.setColor(new Color(200, 200, 200)); // Blanco grisáceo para desbloqueados
+                }
+                String levelNum = String.valueOf(levelIndex + 1);
+                int numWidth = (int)g2.getFontMetrics().getStringBounds(levelNum, g2).getWidth();
+                g2.drawString(levelNum, levelX + levelSize/2 - numWidth/2, levelY + 30);
+            }
+        }
+
+        // Instrucciones
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 20F));
+        g2.setColor(Color.WHITE);
+        text = "WASD para navegar | ENTER para jugar | ESC para volver";
+        x = getXforCenteredText(text);
+        g2.drawString(text, x, gp.screenHeight - gp.tileSize/2);
+
+        // Mostrar progreso
+        int completedCount = 0;
+        for(boolean b : gp.levelCompleted) {
+            if(b) completedCount++;
+        }
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 24F));
+        g2.setColor(new Color(255, 215, 0));
+        text = "Completados: " + completedCount + "/16";
+        x = getXforCenteredText(text);
+        g2.drawString(text, x, gp.screenHeight - gp.tileSize - 20);
+    }
+
+    private void drawHiddenMessage() {
+        // El mensaje "Feliz Navidad Fifi" en 3 líneas
+        String[] lines = {"Feliz", "Navidad", "Fifi"};
+
+        // Posición centrada detrás de la grilla
+        int messageX = gp.screenWidth / 2;
+        int messageStartY = gp.tileSize * 3;
+
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 120F));
+
+        // Calcular cuántas letras se pueden ver según niveles completados
+        int totalLetters = 0;
+        for(String line : lines) {
+            totalLetters += line.length();
+        }
+
+        int completedLevels = 0;
+        for(boolean b : gp.levelCompleted) {
+            if(b) completedLevels++;
+        }
+
+        // Cada nivel revela aproximadamente 1 letra (16 niveles, ~17 letras total)
+        float revealPercentage = (float)completedLevels / 16.0f;
+        int lettersToReveal = (int)(totalLetters * revealPercentage);
+
+        int letterCount = 0;
+        for(int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            int lineY = messageStartY + i * 140;
+
+            // Centrar cada línea
+            int lineWidth = (int)g2.getFontMetrics().getStringBounds(line, g2).getWidth();
+            int lineX = messageX - lineWidth / 2;
+
+            // Dibujar cada letra
+            for(int j = 0; j < line.length(); j++) {
+                char letter = line.charAt(j);
+
+                // Determinar opacidad según si está revelada
+                if(letterCount < lettersToReveal) {
+                    // Revelada - Color brillante con efecto de resplandor
+                    // Primero dibujar sombra/resplandor
+                    g2.setColor(new Color(255, 100, 255, 100)); // Rosa brillante para resplandor
+                    String letterStr = String.valueOf(letter);
+                    int letterWidth = (int)g2.getFontMetrics().getStringBounds(letterStr, g2).getWidth();
+                    g2.drawString(letterStr, lineX + 3, lineY + 3);
+
+                    // Luego dibujar la letra principal
+                    g2.setColor(new Color(255, 50, 255, 255)); // Rosa/magenta brillante
+                    g2.drawString(letterStr, lineX, lineY);
+                    lineX += letterWidth;
+                } else {
+                    // Oculta
+                    g2.setColor(new Color(30, 30, 30, 60)); // Muy oscuro y transparente
+                    String letterStr = String.valueOf(letter);
+                    int letterWidth = (int)g2.getFontMetrics().getStringBounds(letterStr, g2).getWidth();
+                    g2.drawString(letterStr, lineX, lineY);
+                    lineX += letterWidth;
+                }
+                letterCount++;
+            }
         }
     }
 
@@ -131,17 +318,14 @@ public class UI {
     public UI(gamePanel gp) {
         this.gp = gp;
 
-        // Intentar cargar la fuente Minecraft, si falla usar Arial
         try {
             InputStream is = getClass().getResourceAsStream("/Fonts/Minecraft.ttf");
             if (is != null) {
                 minecraft = Font.createFont(Font.TRUETYPE_FONT, is);
             } else {
-                System.out.println("Fuente Minecraft no encontrada, usando Arial");
                 minecraft = new Font("Arial", Font.PLAIN, 32);
             }
         } catch (FontFormatException | IOException e) {
-            System.out.println("Error cargando fuente Minecraft: " + e.getMessage());
             minecraft = new Font("Arial", Font.PLAIN, 32);
         }
 
@@ -163,7 +347,13 @@ public class UI {
         // PANTALLA DE TÍTULO
         if (gp.gameState == gp.titleState) {
             drawTitleScreen();
-            return; // No dibujar nada más
+            return;
+        }
+
+        // PANTALLA DE SELECCIÓN DE NIVELES
+        if (gp.gameState == gp.levelSelectState) {
+            drawLevelSelectScreen();
+            return;
         }
 
         // JUGANDO
@@ -210,6 +400,9 @@ public class UI {
 
         // VICTORIA
         if (gameFinished) {
+            // Marcar el nivel actual como completado
+            gp.completeLevel(gp.selectedLevel);
+
             g2.setColor(Color.black);
             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
@@ -223,14 +416,22 @@ public class UI {
 
             int y = gp.screenHeight / 2;
 
-            String text = "Tu tiempo es: " + tiempoTexto;
+            String text = "¡Nivel " + (gp.selectedLevel + 1) + " Completado!";
             int x = getXforCenteredText(text);
-            y = gp.screenHeight / 2 - (gp.tileSize * 3);
+            y = gp.screenHeight / 2 - (gp.tileSize * 2);
             g2.drawString(text, x, y);
 
-            text = "¡Victoria!";
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 36F));
+            text = "Tu tiempo: " + tiempoTexto;
             x = getXforCenteredText(text);
-            y = gp.screenHeight / 2;
+            y += gp.tileSize;
+            g2.drawString(text, x, y);
+
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F));
+            g2.setColor(Color.WHITE);
+            text = "Presiona ESC para volver al menú";
+            x = getXforCenteredText(text);
+            y += gp.tileSize;
             g2.drawString(text, x, y);
         }
     }
@@ -266,12 +467,11 @@ public class UI {
     public void drawPlayScreen(String tiempoTexto) {
         g2.setFont(arial_40);
         g2.setColor(Color.WHITE);
-        g2.drawString("Time: " + tiempoTexto, gp.tileSize / 2, 30);
+        g2.drawString("Nivel " + (gp.selectedLevel + 1), gp.tileSize / 2, 30);
+        g2.drawString("Time: " + tiempoTexto, gp.screenWidth - 250, 30);
 
-        // Mostrar controles
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 16F));
-        g2.drawString("P1: WASD", gp.tileSize / 2, 55);
-        g2.drawString("P2: Flechas", gp.tileSize / 2, 75);
+        g2.drawString("ESC: Menú", gp.tileSize / 2, 55);
     }
 
     public void drawInventory() {
@@ -363,7 +563,7 @@ public class UI {
             g2.drawString(">", x - 40, y);
         }
 
-        text = "Salir";
+        text = "Menú de Niveles";
         x = getXforCenteredText(text);
         y += 50;
         g2.drawString(text, x, y);

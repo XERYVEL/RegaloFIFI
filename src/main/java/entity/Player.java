@@ -32,7 +32,7 @@ public class Player extends Entity {
         this.keyH = keyH;
         this.playerNumber = playerNumber;
 
-        // Posición fija en pantalla (ya no se mueve la cámara)
+        // Posición fija en pantalla
         screenX = 0;
         screenY = 0;
 
@@ -53,15 +53,22 @@ public class Player extends Entity {
     }
 
     public void setDefaultValues() {
+        // Posiciones iniciales sobre el piso (fila 11)
+        // Los jugadores aparecen en la fila 10 (justo sobre el piso)
         if(playerNumber == 1) {
             worldX = 2 * gp.tileSize;
-            worldY = 12 * gp.tileSize;  // Cambiado de 18 a 12 (sobre el piso que está en fila 13)
+            worldY = 10 * gp.tileSize;
         } else {
             worldX = 4 * gp.tileSize;
-            worldY = 12 * gp.tileSize;  // Cambiado de 18 a 12
+            worldY = 10 * gp.tileSize;
         }
-        speed = 4; // Velocidad horizontal
+        speed = 4;
         direction = Direccion.Derecha;
+
+        // Resetear física
+        velocityY = 0;
+        isGrounded = false;
+        canJump = true;
     }
 
     public void setItems() {
@@ -69,7 +76,6 @@ public class Player extends Entity {
     }
 
     public void getPlayersImage() {
-        // Usar diferentes sprites para cada jugador
         if(playerNumber == 1) {
             up1 = setup("/player/arriba");
             up2 = setup("/player/arriba2");
@@ -80,7 +86,6 @@ public class Player extends Entity {
             right1 = setup("/player/derecha");
             right2 = setup("/player/derecha2");
         } else {
-            // Player 2 - puedes usar otros sprites o los mismos
             up1 = setup("/player/arriba");
             up2 = setup("/player/arriba2");
             down1 = setup("/player/abajo");
@@ -99,7 +104,6 @@ public class Player extends Entity {
 
         boolean moving = false;
 
-        // Controles según el jugador
         if(playerNumber == 1) {
             // Player 1: WASD
             if (keyH.leftPressed) {
@@ -148,41 +152,32 @@ public class Player extends Entity {
     private void moveHorizontal(int speedX) {
         collisionOn = false;
 
-        // Guardar posición anterior
         int oldX = worldX;
 
-        // Intentar mover
         worldX += speedX;
 
-        // Verificar colisiones horizontales con tiles
         gp.cChecker.checkTile(this);
 
-        // Verificar colisión con el otro jugador
         if(checkPlayerCollision(speedX, 0)) {
             collisionOn = true;
         }
 
         if(collisionOn) {
-            worldX = oldX; // Restaurar posición si hay colisión
+            worldX = oldX;
         }
     }
 
     private void applyGravity() {
-        // Aplicar gravedad
         velocityY += GRAVITY;
 
-        // Limitar velocidad de caída
         if(velocityY > MAX_FALL_SPEED) {
             velocityY = MAX_FALL_SPEED;
         }
 
-        // Guardar posición anterior
         int oldY = worldY;
 
-        // Aplicar velocidad vertical
         worldY += (int)velocityY;
 
-        // Verificar colisiones verticales con tiles
         collisionOn = false;
 
         if(velocityY > 0) {
@@ -190,7 +185,6 @@ public class Player extends Entity {
             direction = Direccion.Abajo;
             gp.cChecker.checkTile(this);
 
-            // Verificar colisión con el otro jugador (cayendo sobre él)
             if(checkPlayerCollisionFromAbove()) {
                 collisionOn = true;
             }
@@ -208,7 +202,6 @@ public class Player extends Entity {
             direction = Direccion.Arriba;
             gp.cChecker.checkTile(this);
 
-            // Verificar colisión con el otro jugador (golpeando desde abajo)
             if(checkPlayerCollision(0, (int)velocityY)) {
                 collisionOn = true;
             }
@@ -222,14 +215,12 @@ public class Player extends Entity {
     }
 
     private boolean checkPlayerCollision(int deltaX, int deltaY) {
-        // Obtener el otro jugador
         Player otherPlayer = (playerNumber == 1) ? gp.player2 : gp.player;
 
         if(otherPlayer == null) {
             return false;
         }
 
-        // Crear rectángulos para detectar colisión
         Rectangle thisRect = new Rectangle(
                 worldX + solidArea.x + deltaX,
                 worldY + solidArea.y + deltaY,
@@ -244,20 +235,16 @@ public class Player extends Entity {
                 otherPlayer.solidArea.height
         );
 
-        // Verificar si se intersectan
         return thisRect.intersects(otherRect);
     }
 
     private boolean checkPlayerCollisionFromAbove() {
-        // Obtener el otro jugador
         Player otherPlayer = (playerNumber == 1) ? gp.player2 : gp.player;
 
         if(otherPlayer == null) {
             return false;
         }
 
-        // Verificar si estamos cayendo sobre el otro jugador
-        // Solo cuenta como colisión si venimos desde arriba
         Rectangle thisRect = new Rectangle(
                 worldX + solidArea.x,
                 worldY + solidArea.y,
@@ -272,13 +259,10 @@ public class Player extends Entity {
                 otherPlayer.solidArea.height
         );
 
-        // Solo colisión si estamos cayendo y nuestros pies tocan su cabeza
         if(velocityY > 0 && thisRect.intersects(otherRect)) {
-            // Verificar que efectivamente venimos desde arriba
             int thisFeet = worldY + solidArea.y + solidArea.height;
             int otherHead = otherPlayer.worldY + otherPlayer.solidArea.y;
 
-            // Permitir estar parado sobre el otro jugador
             if(thisFeet >= otherHead && thisFeet <= otherHead + 16) {
                 return true;
             }
@@ -291,7 +275,7 @@ public class Player extends Entity {
         velocityY = JUMP_STRENGTH;
         isGrounded = false;
         canJump = false;
-        gp.playSE(5); // Sonido de salto
+        gp.playSE(5);
     }
 
     public void pickUpObject(int i) {
@@ -347,23 +331,19 @@ public class Player extends Entity {
             case Derecha -> image = (spriteNum == 1) ? right1 : right2;
         }
 
-        // Dibujar directamente en posición del mundo (cámara fija)
         g2.drawImage(image, worldX, worldY, gp.tileSize, gp.tileSize, null);
 
-        // Debug - dibujar hitbox y estado
+        // Debug
         if(gp.keyH.checkDrawTime) {
-            // Hitbox
             g2.setColor(playerNumber == 1 ? Color.RED : Color.GREEN);
             g2.drawRect(worldX + solidArea.x, worldY + solidArea.y,
                     solidArea.width, solidArea.height);
 
-            // Indicador de en el suelo
             if(isGrounded) {
                 g2.setColor(Color.YELLOW);
                 g2.fillRect(worldX + gp.tileSize/2 - 2, worldY + gp.tileSize - 4, 4, 4);
             }
 
-            // Número del jugador
             g2.setColor(Color.WHITE);
             g2.setFont(new Font("Arial", Font.BOLD, 12));
             g2.drawString("P" + playerNumber, worldX + 2, worldY + 12);

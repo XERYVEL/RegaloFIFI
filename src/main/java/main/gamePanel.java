@@ -17,8 +17,8 @@ public class gamePanel extends JPanel implements Runnable {
 
     public VideosSwing videos;
     public int tileSize = originalTileSize * scale;
-    public final int maxScreenCol = 20;  // Ancho: 20
-    public final int maxScreenRow = 14;  // Alto: 14
+    public final int maxScreenCol = 20;
+    public final int maxScreenRow = 12;
     public final int screenWidth = tileSize * maxScreenCol;
     public final int screenHeight = tileSize * maxScreenRow;
 
@@ -26,33 +26,36 @@ public class gamePanel extends JPanel implements Runnable {
     public boolean videoMostrado2 = false;
     public boolean tieneCupon = false;
 
-    public final int maxWorldCol = 20;  // Ancho: 20
-    public final int maxWorldRow = 14;  // Alto: 14
+    public final int maxWorldCol = 20;
+    public final int maxWorldRow = 12;
     public final int maxMap = 10;
     public int currentMap = 0;
 
     int FPS = 60;
 
     public Reloj reloj;
-    TileManager tileM = new TileManager(this);
+    TileManager tileM;
 
-    public KeyHandler keyH = new KeyHandler(this);
+    public KeyHandler keyH;
     Sonido sonido = new Sonido();
     Thread gameThread;
 
-    public CollisionChecker cChecker = new CollisionChecker(this);
-    public AssetSetter aSetter = new AssetSetter(this);
-    public UI ui = new UI(this);
+    public CollisionChecker cChecker;
+    public AssetSetter aSetter;
+    public UI ui;
 
-    // DOS JUGADORES
-    public Player player;  // Player 1
-    public Player player2; // Player 2
+    public Player player;
+    public Player player2;
 
-    public EventHandler eHandler = new EventHandler(this);
+    public EventHandler eHandler;
     public Entity obj[][] = new Entity[maxMap][10];
     public Entity npc[][] = new Entity[maxMap][10];
 
     ArrayList<Entity> entityList = new ArrayList<>();
+
+    // Sistema de niveles
+    public boolean[] levelCompleted = new boolean[16]; // 16 niveles
+    public int selectedLevel = 0; // Nivel seleccionado en el menú
 
     public int gameState;
     public final int titleState = 0;
@@ -62,14 +65,23 @@ public class gamePanel extends JPanel implements Runnable {
     public final int gameOverState = 4;
     public final int characterState = 5;
     public final int videoState = 6;
+    public final int levelSelectState = 7; // NUEVO ESTADO
 
     public gamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
         this.setBackground(Color.black);
         this.setDoubleBuffered(true);
+
+        keyH = new KeyHandler(this);
         this.addKeyListener(keyH);
         this.setFocusable(true);
-        this.reloj = new Reloj(this, ui);
+
+        ui = new UI(this);
+        reloj = new Reloj(this, ui);
+        tileM = new TileManager(this);
+        cChecker = new CollisionChecker(this);
+        aSetter = new AssetSetter(this);
+        eHandler = new EventHandler(this);
 
         videos = new VideosSwing(screenWidth, screenHeight);
 
@@ -80,11 +92,14 @@ public class gamePanel extends JPanel implements Runnable {
 
         videos.loadVideo("pavon", "res/Videos/MercadoPatio.mp4");
         videos.loadVideo("monu", "res/Videos/Monumento.mp4");
+
+        // Inicializar niveles completados (todos en false)
+        for(int i = 0; i < levelCompleted.length; i++) {
+            levelCompleted[i] = false;
+        }
     }
 
     public void showVideo(String key) {
-        System.out.println("=== Mostrando video: " + key + " ===");
-
         gameState = videoState;
 
         videos.getFXPanel().setVisible(true);
@@ -113,13 +128,35 @@ public class gamePanel extends JPanel implements Runnable {
     }
 
     public void setupGame() {
-        // Inicializar los dos jugadores
-        player = new Player(this, keyH, 1);   // Player 1 - WASD
-        player2 = new Player(this, keyH, 2);  // Player 2 - Flechas
+        currentMap = 0;
+
+        videoMostrado = false;
+        videoMostrado2 = false;
+        tieneCupon = false;
+
+        player = new Player(this, keyH, 1);
+        player2 = new Player(this, keyH, 2);
 
         aSetter.setObject();
         aSetter.setNPC();
+
+        ui.gameFinished = false;
+        ui.gameOver = false;
+        ui.messageOn = false;
+        ui.commandNum = 0;
+
+        if(reloj != null) {
+            reloj.reiniciarTiempo();
+        }
+
         gameState = titleState;
+    }
+
+    public void completeLevel(int levelNumber) {
+        if(levelNumber >= 0 && levelNumber < levelCompleted.length) {
+            levelCompleted[levelNumber] = true;
+            System.out.println("¡Nivel " + (levelNumber + 1) + " completado!");
+        }
     }
 
     public void startGameThread() {
@@ -129,7 +166,7 @@ public class gamePanel extends JPanel implements Runnable {
 
     @Override
     public void run() {
-        double drawInterval = 1000000000 / FPS;
+        double drawInterval = 1000000000.0 / FPS;
         double nextDrawTime = System.nanoTime() + drawInterval;
 
         while (gameThread != null) {
@@ -153,15 +190,14 @@ public class gamePanel extends JPanel implements Runnable {
 
     public void update() {
         if(gameState == playState){
-            // Actualizar ambos jugadores solo si existen
             if(player != null) {
                 player.update();
             }
+
             if(player2 != null) {
                 player2.update();
             }
 
-            // NPCs (si los necesitas en el plataformero)
             for (int i = 0; i < npc[1].length; i++) {
                 if (npc[currentMap][i] != null) {
                     npc[currentMap][i].update();
@@ -190,16 +226,26 @@ public class gamePanel extends JPanel implements Runnable {
 
         if(gameState == titleState) {
             ui.draw(g2);
-        } else if (gameState == videoState) {
+        }
+        else if(gameState == levelSelectState) {
+            ui.draw(g2); // UI dibujará la pantalla de selección de niveles
+        }
+        else if (gameState == videoState) {
             return;
-        } else {
-            // Dibujar tiles (cámara fija - sin offset)
+        }
+        else {
+            // Dibujar tiles
             tileM.draw(g2);
 
-            // Agregar entidades a la lista para ordenar por profundidad
+            // Agregar entidades
             entityList.clear();
-            entityList.add(player);
-            entityList.add(player2);
+
+            if(player != null) {
+                entityList.add(player);
+            }
+            if(player2 != null) {
+                entityList.add(player2);
+            }
 
             for (Entity[] row : npc) {
                 for (Entity n : row) {
@@ -213,7 +259,7 @@ public class gamePanel extends JPanel implements Runnable {
                 }
             }
 
-            // Ordenar por posición Y (profundidad)
+            // Ordenar por Y
             Collections.sort(entityList, new Comparator<Entity>() {
                 @Override
                 public int compare(Entity o1, Entity o2) {
@@ -221,7 +267,7 @@ public class gamePanel extends JPanel implements Runnable {
                 }
             });
 
-            // Dibujar todas las entidades
+            // Dibujar entidades
             for (Entity e : entityList) {
                 e.draw(g2);
             }
@@ -234,15 +280,19 @@ public class gamePanel extends JPanel implements Runnable {
                 long drawEnd = System.nanoTime();
                 long passed = drawEnd - drawStart;
                 g2.setColor(Color.white);
-                g2.setFont(new Font("Arial", Font.PLAIN, 20));
+                g2.setFont(new Font("Arial", Font.PLAIN, 16));
 
                 int x = 10;
                 int y = 400;
 
-                g2.drawString("P1 X: " + player.worldX, x, y); y += 22;
-                g2.drawString("P1 Y: " + player.worldY, x, y); y += 22;
-                g2.drawString("P2 X: " + player2.worldX, x, y); y += 22;
-                g2.drawString("P2 Y: " + player2.worldY, x, y); y += 22;
+                if(player != null) {
+                    g2.drawString("P1 X: " + player.worldX, x, y); y += 20;
+                    g2.drawString("P1 Y: " + player.worldY, x, y); y += 20;
+                }
+                if(player2 != null) {
+                    g2.drawString("P2 X: " + player2.worldX, x, y); y += 20;
+                    g2.drawString("P2 Y: " + player2.worldY, x, y); y += 20;
+                }
                 g2.drawString("Draw time: " + passed, x, y);
             }
         }
@@ -266,7 +316,7 @@ public class gamePanel extends JPanel implements Runnable {
             } else {
                 stopMusic();
             }
-        } else {
+        } else if(gameState == titleState || gameState == levelSelectState) {
             stopMusic();
         }
     }
