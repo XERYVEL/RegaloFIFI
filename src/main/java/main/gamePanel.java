@@ -56,6 +56,7 @@ public class gamePanel extends JPanel implements Runnable {
     // Sistema de niveles
     public boolean[] levelCompleted = new boolean[16]; // 16 niveles
     public int selectedLevel = 0; // Nivel seleccionado en el menú
+    public boolean finalButtonSelected = false; // Para saber si el botón final está seleccionado
 
     public int gameState;
     public final int titleState = 0;
@@ -65,7 +66,8 @@ public class gamePanel extends JPanel implements Runnable {
     public final int gameOverState = 4;
     public final int characterState = 5;
     public final int videoState = 6;
-    public final int levelSelectState = 7; // NUEVO ESTADO
+    public final int levelSelectState = 7;
+    public final int finalScreenState = 8; // NUEVA PANTALLA FINAL
 
     public gamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -97,6 +99,13 @@ public class gamePanel extends JPanel implements Runnable {
         for(int i = 0; i < levelCompleted.length; i++) {
             levelCompleted[i] = false;
         }
+    }
+
+    public boolean allLevelsCompleted() {
+        for(boolean completed : levelCompleted) {
+            if(!completed) return false;
+        }
+        return true;
     }
 
     public void showVideo(String key) {
@@ -228,7 +237,10 @@ public class gamePanel extends JPanel implements Runnable {
             ui.draw(g2);
         }
         else if(gameState == levelSelectState) {
-            ui.draw(g2); // UI dibujará la pantalla de selección de niveles
+            ui.draw(g2);
+        }
+        else if(gameState == finalScreenState) {
+            ui.draw(g2);
         }
         else if (gameState == videoState) {
             return;
@@ -316,7 +328,7 @@ public class gamePanel extends JPanel implements Runnable {
             } else {
                 stopMusic();
             }
-        } else if(gameState == titleState || gameState == levelSelectState) {
+        } else if(gameState == titleState || gameState == levelSelectState || gameState == finalScreenState) {
             stopMusic();
         }
     }

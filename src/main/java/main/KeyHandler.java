@@ -40,6 +40,9 @@ public class KeyHandler implements KeyListener{
         else if(gp.gameState == gp.levelSelectState) {
             levelSelectState(code);
         }
+        else if(gp.gameState == gp.finalScreenState) {
+            finalScreenState(code);
+        }
         else if(gp.gameState == gp.playState){
             playState(code);
         }
@@ -85,72 +88,113 @@ public class KeyHandler implements KeyListener{
     }
 
     public void levelSelectState(int code) {
-        // Navegación por la grilla 4x4
+        // Navegación por la grilla 4x4 + botón final
         if(code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
-            gp.selectedLevel -= 4;
-            if(gp.selectedLevel < 0) {
-                gp.selectedLevel += 16;
+            if(gp.finalButtonSelected) {
+                // Volver a los niveles (última fila)
+                gp.finalButtonSelected = false;
+                gp.selectedLevel = 12; // Fila 3, columna 0
+            } else {
+                gp.selectedLevel -= 4;
+                if(gp.selectedLevel < 0) {
+                    gp.selectedLevel += 16;
+                }
             }
             gp.playSE(5);
         }
+
         if(code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
-            gp.selectedLevel += 4;
-            if(gp.selectedLevel >= 16) {
-                gp.selectedLevel -= 16;
+            if(!gp.finalButtonSelected) {
+                // Si estamos en la última fila (12-15), ir al botón final
+                if(gp.selectedLevel >= 12 && gp.selectedLevel <= 15) {
+                    gp.finalButtonSelected = true;
+                } else {
+                    gp.selectedLevel += 4;
+                    if(gp.selectedLevel >= 16) {
+                        gp.selectedLevel -= 16;
+                    }
+                }
             }
             gp.playSE(5);
         }
+
         if(code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
-            gp.selectedLevel--;
-            if(gp.selectedLevel < 0) {
-                gp.selectedLevel = 15;
+            if(!gp.finalButtonSelected) {
+                gp.selectedLevel--;
+                if(gp.selectedLevel < 0) {
+                    gp.selectedLevel = 15;
+                }
+                gp.playSE(5);
             }
-            gp.playSE(5);
         }
+
         if(code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
-            gp.selectedLevel++;
-            if(gp.selectedLevel >= 16) {
-                gp.selectedLevel = 0;
+            if(!gp.finalButtonSelected) {
+                gp.selectedLevel++;
+                if(gp.selectedLevel >= 16) {
+                    gp.selectedLevel = 0;
+                }
+                gp.playSE(5);
             }
-            gp.playSE(5);
         }
 
         if(code == KeyEvent.VK_ENTER) {
-            // Verificar si el nivel está desbloqueado
-            boolean unlocked = (gp.selectedLevel == 0) || gp.levelCompleted[gp.selectedLevel - 1];
+            if(gp.finalButtonSelected) {
+                // Ir a la pantalla final si todos los niveles están completados
+                if(gp.allLevelsCompleted()) {
+                    gp.gameState = gp.finalScreenState;
+                    gp.playSE(5);
+                } else {
+                    // Botón bloqueado
+                    gp.playSE(1);
+                    System.out.println("¡Completa todos los niveles primero!");
+                }
+            } else {
+                // Verificar si el nivel está desbloqueado
+                boolean unlocked = (gp.selectedLevel == 0) || gp.levelCompleted[gp.selectedLevel - 1];
 
-            if(!unlocked) {
-                // Nivel bloqueado - reproducir sonido de error
-                gp.playSE(1); // Sonido de error/pierde
-                System.out.println("¡Nivel " + (gp.selectedLevel + 1) + " bloqueado! Completa el nivel anterior primero.");
-                return;
+                if(!unlocked) {
+                    gp.playSE(1);
+                    System.out.println("¡Nivel " + (gp.selectedLevel + 1) + " bloqueado! Completa el nivel anterior primero.");
+                    return;
+                }
+
+                // Iniciar el nivel seleccionado
+                if(gp.reloj != null) {
+                    gp.reloj.reiniciarTiempo();
+                }
+
+                if(gp.player != null) {
+                    gp.player.setDefaultValues();
+                }
+                if(gp.player2 != null) {
+                    gp.player2.setDefaultValues();
+                }
+
+                gp.ui.gameFinished = false;
+                gp.ui.gameOver = false;
+                gp.ui.messageOn = false;
+
+                gp.currentMap = 0;
+                gp.gameState = gp.playState;
+                gp.playMusic(7);
+                gp.playSE(5);
             }
-
-            // Iniciar el nivel seleccionado
-            if(gp.reloj != null) {
-                gp.reloj.reiniciarTiempo();
-            }
-
-            if(gp.player != null) {
-                gp.player.setDefaultValues();
-            }
-            if(gp.player2 != null) {
-                gp.player2.setDefaultValues();
-            }
-
-            gp.ui.gameFinished = false;
-            gp.ui.gameOver = false;
-            gp.ui.messageOn = false;
-
-            gp.currentMap = 0; // Por ahora todos usan el mismo mapa
-            gp.gameState = gp.playState;
-            gp.playMusic(7);
-            gp.playSE(5);
         }
 
         if(code == KeyEvent.VK_ESCAPE) {
             // Volver al menú principal
             gp.gameState = gp.titleState;
+            gp.finalButtonSelected = false;
+            gp.playSE(5);
+        }
+    }
+
+    public void finalScreenState(int code) {
+        if(code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_ENTER) {
+            // Volver a selección de niveles
+            gp.gameState = gp.levelSelectState;
+            gp.finalButtonSelected = false;
             gp.playSE(5);
         }
     }
@@ -192,7 +236,6 @@ public class KeyHandler implements KeyListener{
             enterPressed = true;
         }
         if(code == KeyEvent.VK_ESCAPE) {
-            // Volver a selección de niveles
             gp.gameState = gp.levelSelectState;
         }
         if(code == KeyEvent.VK_T) {
@@ -202,7 +245,7 @@ public class KeyHandler implements KeyListener{
         // TECLA G - GANAR NIVEL INSTANTÁNEAMENTE (para pruebas)
         if(code == KeyEvent.VK_G) {
             System.out.println("¡Ganaste el nivel " + (gp.selectedLevel + 1) + " con G!");
-            gp.playSE(2); // Sonido de victoria
+            gp.playSE(2);
             gp.ui.gameFinished = true;
         }
     }
@@ -260,11 +303,9 @@ public class KeyHandler implements KeyListener{
         }
         if(code == KeyEvent.VK_ENTER){
             if(gp.ui.commandNum == 0) {
-                // Reintentar
                 gp.setupGame();
                 gp.gameState = gp.playState;
             } else {
-                // Volver a selección de niveles
                 gp.gameState = gp.levelSelectState;
             }
         }
