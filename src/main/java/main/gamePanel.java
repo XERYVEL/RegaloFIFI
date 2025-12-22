@@ -29,7 +29,7 @@ public class gamePanel extends JPanel implements Runnable {
 
     public final int maxWorldCol = 20;
     public final int maxWorldRow = 12;
-    public final int maxMap = 10;
+    public final int maxMap = 16;
     public int currentMap = 0;
 
     int FPS = 60;
@@ -216,14 +216,28 @@ public class gamePanel extends JPanel implements Runnable {
         // Configurar las zonas de meta para este nivel
         if(eHandler != null) {
             eHandler.setupGoalZonesForCurrentMap();
+        } else {
+            System.err.println("❌ EventHandler es null!");
         }
 
-        // Resetear posiciones de los jugadores a las posiciones iniciales
-        if(player != null) {
-            player.setDefaultValues();
+        // ⭐ NUEVO: Configurar spawns usando AssetSetter
+        if(aSetter != null) {
+            aSetter.setPlayerSpawns(levelIndex);
+        } else {
+            System.err.println("❌ AssetSetter es null!");
+            // Fallback a posiciones por defecto
+            if(player != null) {
+                player.setDefaultValues();
+            }
+            if(player2 != null) {
+                player2.setDefaultValues();
+            }
         }
-        if(player2 != null) {
-            player2.setDefaultValues();
+
+        // Resetear estados de UI
+        if(ui != null) {
+            ui.gameFinished = false;
+            ui.gameOver = false;
         }
     }
 
@@ -354,6 +368,65 @@ public class gamePanel extends JPanel implements Runnable {
             }
 
             ui.draw(g2);
+            if (keyH.checkDrawTime && eHandler != null && gameState == playState) {
+                // Zona Player 1 (Azul)
+                if(eHandler.player1GoalZone != null) {
+                    g2.setColor(new Color(0, 100, 255, 100));
+                    g2.fillRect(
+                            eHandler.player1GoalZone.x,
+                            eHandler.player1GoalZone.y,
+                            eHandler.player1GoalZone.width,
+                            eHandler.player1GoalZone.height
+                    );
+
+                    g2.setColor(new Color(0, 150, 255));
+                    g2.setStroke(new BasicStroke(3));
+                    g2.drawRect(
+                            eHandler.player1GoalZone.x,
+                            eHandler.player1GoalZone.y,
+                            eHandler.player1GoalZone.width,
+                            eHandler.player1GoalZone.height
+                    );
+
+                    if(eHandler.player1InGoal) {
+                        g2.setColor(Color.GREEN);
+                        g2.setFont(new Font("Arial", Font.BOLD, 20));
+                        g2.drawString("P1 ✓", eHandler.player1GoalZone.x + 5, eHandler.player1GoalZone.y + 30);
+                    }
+                }
+
+                // Zona Player 2 (Rojo)
+                if(eHandler.player2GoalZone != null) {
+                    g2.setColor(new Color(255, 50, 50, 100));
+                    g2.fillRect(
+                            eHandler.player2GoalZone.x,
+                            eHandler.player2GoalZone.y,
+                            eHandler.player2GoalZone.width,
+                            eHandler.player2GoalZone.height
+                    );
+
+                    g2.setColor(new Color(255, 100, 100));
+                    g2.setStroke(new BasicStroke(3));
+                    g2.drawRect(
+                            eHandler.player2GoalZone.x,
+                            eHandler.player2GoalZone.y,
+                            eHandler.player2GoalZone.width,
+                            eHandler.player2GoalZone.height
+                    );
+
+                    if(eHandler.player2InGoal) {
+                        g2.setColor(Color.GREEN);
+                        g2.setFont(new Font("Arial", Font.BOLD, 20));
+                        g2.drawString("P2 ✓", eHandler.player2GoalZone.x + 5, eHandler.player2GoalZone.y + 30);
+                    }
+                }
+
+                // Estado general
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Arial", Font.BOLD, 16));
+                g2.drawString("P1 en zona AZUL: " + eHandler.player1InGoal, 10, 450);
+                g2.drawString("P2 en zona ROJA: " + eHandler.player2InGoal, 10, 470);
+            }
 
             if (keyH.checkDrawTime) {
                 long drawEnd = System.nanoTime();

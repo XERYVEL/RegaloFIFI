@@ -14,13 +14,13 @@ public class Player1 extends Entity {
     public final int screenX;
     public final int screenY;
 
-    // Variables para física de plataformas
-    private double velocityY = 0;
-    private final double GRAVITY = 0.5;
-    private final double JUMP_STRENGTH = -12;
-    private final double MAX_FALL_SPEED = 15;
-    private boolean isGrounded = false;
-    private boolean canJump = true;
+    // Variables para física de plataformas - AHORA PÚBLICAS
+    public double velocityY = 0;
+    public final double GRAVITY = 0.5;
+    public final double JUMP_STRENGTH = -12;
+    public final double MAX_FALL_SPEED = 15;
+    public boolean isGrounded = false;
+    public boolean canJump = true;
 
     public int panDeAjoCount = 0;
     public ArrayList<Entity> inventory = new ArrayList<>();
@@ -67,14 +67,14 @@ public class Player1 extends Entity {
 
     public void getPlayerImage() {
         // Player 1 - Mujer (sprites originales)
-        up1 = setup("/player/frenteM");
-        up2 = setup("/player/frenteM");
-        down1 = setup("/player/frenteM");
-        down2 = setup("/player/frenteM");
-        left1 = setup("/player/izquierdaM1");
-        left2 = setup("/player/izquierdaM2");
-        right1 = setup("/player/derechaM1");
-        right2 = setup("/player/derechaM2");
+        up1 = setup("/player/frenteH");
+        up2 = setup("/player/frenteH");
+        down1 = setup("/player/frenteH");
+        down2 = setup("/player/frenteH");
+        left1 = setup("/player/izquierdaH1");
+        left2 = setup("/player/izquierdaH2");
+        right1 = setup("/player/derechaH1");
+        right2 = setup("/player/derechaH2");
     }
 
     public void update() {

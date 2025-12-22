@@ -21,7 +21,8 @@ public class TileManager {
         this.gp = gp;
         tile = new Tile[100];
 
-        mapTileNum = new int[gp.maxMap][gp.maxWorldCol][gp.maxWorldRow];
+        // CORREGIDO: Aumentar el tamaño del array para soportar 16 niveles
+        mapTileNum = new int[16][gp.maxWorldCol][gp.maxWorldRow];
 
         getTileImage();
 
@@ -37,8 +38,8 @@ public class TileManager {
         setup(3, "borde", true);         // 3: Borde del mapa
         setup(4, "fondo", false);        // 4: Fondo decorativo
         setup(5, "piso", true);          // 5: Piso especial
-        setup(6, "puertaH", false);      // 6: Puerta del hombre (Player 1 - Azul)
-        setup(7, "puertaM", false);      // 7: Puerta de la mujer (Player 2 - Rojo)
+        setup(6, "puertaH", false);      // 6: Puerta AZUL (Player 1 - Mujer)
+        setup(7, "puertaM", false);      // 7: Puerta ROJA (Player 2 - Hombre)
     }
 
     public void loadAllLevels() {
@@ -107,10 +108,10 @@ public class TileManager {
                 g2.setColor(new Color(160, 82, 45));
                 break;
             case 6:
-                g2.setColor(new Color(0, 100, 200));
+                g2.setColor(new Color(0, 100, 200)); // AZUL - Player 1
                 break;
             case 7:
-                g2.setColor(new Color(200, 50, 50));
+                g2.setColor(new Color(200, 50, 50)); // ROJO - Player 2
                 break;
             default:
                 g2.setColor(new Color(150, 150, 150));
