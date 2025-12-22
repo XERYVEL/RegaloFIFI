@@ -28,11 +28,9 @@ public class KeyHandler implements KeyListener{
 
     @Override
     public void keyTyped(KeyEvent e) {
-        // Para input de nombre
         if (gp.gameState == gp.nameInputState) {
             char c = e.getKeyChar();
 
-            // Permitir letras, números y espacios
             if ((Character.isLetterOrDigit(c) || c == ' ') &&
                     gp.ui.nombreInput.length() < gp.ui.maxNombreLength) {
                 gp.ui.nombreInput += c;
@@ -91,25 +89,21 @@ public class KeyHandler implements KeyListener{
             }
             if(code == KeyEvent.VK_ENTER) {
                 if(gp.ui.commandNum == 0) {
-                    // Nuevo Juego - ir a pantalla de nombre
                     gp.gameState = gp.nameInputState;
                     gp.ui.nombreInput = "";
                     gp.playSE(5);
                 }
                 else if(gp.ui.commandNum == 1) {
-                    // Continuar - verificar si hay partidas guardadas
                     if(gp.saveSystem.hayPartidasGuardadas()) {
                         gp.gameState = gp.loadGameState;
                         gp.ui.partidasGuardadas = gp.saveSystem.cargarTodasLasPartidas();
                         gp.ui.selectedSaveSlot = 0;
                         gp.playSE(5);
                     } else {
-                        // No hay partidas, sonido de error
                         gp.playSE(1);
                     }
                 }
                 else if(gp.ui.commandNum == 2) {
-                    // Salir
                     System.exit(0);
                 }
             }
@@ -118,13 +112,11 @@ public class KeyHandler implements KeyListener{
 
     public void nameInputState(int code) {
         if(code == KeyEvent.VK_BACK_SPACE) {
-            // Borrar último carácter
             if(gp.ui.nombreInput.length() > 0) {
                 gp.ui.nombreInput = gp.ui.nombreInput.substring(0, gp.ui.nombreInput.length() - 1);
             }
         }
         else if(code == KeyEvent.VK_ENTER) {
-            // Confirmar nombre
             if(!gp.ui.nombreInput.trim().isEmpty()) {
                 gp.iniciarNuevaPartida(gp.ui.nombreInput.trim());
                 gp.playSE(5);
@@ -133,7 +125,6 @@ public class KeyHandler implements KeyListener{
             }
         }
         else if(code == KeyEvent.VK_ESCAPE) {
-            // Volver al menú principal
             gp.gameState = gp.titleState;
             gp.ui.nombreInput = "";
             gp.playSE(5);
@@ -164,7 +155,6 @@ public class KeyHandler implements KeyListener{
             gp.playSE(5);
         }
         else if(code == KeyEvent.VK_ENTER) {
-            // Cargar partida seleccionada
             if(gp.ui.selectedSaveSlot < gp.ui.partidasGuardadas.size()) {
                 SaveSystem.SaveData save = gp.ui.partidasGuardadas.get(gp.ui.selectedSaveSlot);
                 gp.cargarPartida(save.nombreJugador);
@@ -172,15 +162,12 @@ public class KeyHandler implements KeyListener{
             }
         }
         else if(code == KeyEvent.VK_DELETE) {
-            // Eliminar partida seleccionada
             if(gp.ui.selectedSaveSlot < gp.ui.partidasGuardadas.size()) {
                 SaveSystem.SaveData save = gp.ui.partidasGuardadas.get(gp.ui.selectedSaveSlot);
                 gp.saveSystem.eliminarPartida(save.nombreJugador);
 
-                // Recargar lista
                 gp.ui.partidasGuardadas = gp.saveSystem.cargarTodasLasPartidas();
 
-                // Ajustar selección si es necesario
                 if(gp.ui.selectedSaveSlot >= gp.ui.partidasGuardadas.size() &&
                         gp.ui.selectedSaveSlot > 0) {
                     gp.ui.selectedSaveSlot--;
@@ -191,7 +178,6 @@ public class KeyHandler implements KeyListener{
             }
         }
         else if(code == KeyEvent.VK_ESCAPE) {
-            // Volver al menú principal
             gp.gameState = gp.titleState;
             gp.ui.partidasGuardadas = null;
             gp.playSE(5);
@@ -264,6 +250,9 @@ public class KeyHandler implements KeyListener{
                     return;
                 }
 
+                // IMPORTANTE: Cargar el nivel seleccionado
+                gp.loadLevel(gp.selectedLevel);
+
                 if(gp.reloj != null) {
                     gp.reloj.reiniciarTiempo();
                 }
@@ -279,7 +268,6 @@ public class KeyHandler implements KeyListener{
                 gp.ui.gameOver = false;
                 gp.ui.messageOn = false;
 
-                gp.currentMap = 0;
                 gp.gameState = gp.playState;
                 gp.playMusic(7);
                 gp.playSE(5);
@@ -405,9 +393,21 @@ public class KeyHandler implements KeyListener{
         }
         if(code == KeyEvent.VK_ENTER){
             if(gp.ui.commandNum == 0) {
-                gp.setupGame();
+                // Reintentar - recargar el mismo nivel
+                gp.loadLevel(gp.selectedLevel);
+
+                if(gp.reloj != null) {
+                    gp.reloj.reiniciarTiempo();
+                }
+
+                gp.ui.gameFinished = false;
+                gp.ui.gameOver = false;
+                gp.ui.messageOn = false;
+
                 gp.gameState = gp.playState;
+                gp.playMusic(7);
             } else {
+                // Volver al menú de niveles
                 gp.gameState = gp.levelSelectState;
             }
         }

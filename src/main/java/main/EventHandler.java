@@ -58,29 +58,65 @@ public class EventHandler {
             }
         }
 
-        setupGoalZones();
+        // Las zonas se configurarán dinámicamente cuando se cargue cada nivel
     }
 
-    public void setupGoalZones() {
-        // Zona de meta para Player 1 (color azul)
-        int p1Col = 17;
-        int p1Row = 10;
-        player1GoalZone = new Rectangle(
-                p1Col * gp.tileSize,
-                p1Row * gp.tileSize,
-                gp.tileSize * 1,
-                gp.tileSize
-        );
+    /**
+     * Configura las zonas de meta dinámicamente basándose en los tiles 6 y 7 del mapa actual
+     * Este método DEBE ser llamado cada vez que se carga un nuevo nivel
+     */
+    public void setupGoalZonesForCurrentMap() {
+        int currentMap = gp.currentMap;
 
-        // Zona de meta para Player 2 (color rojo)
-        int p2Col = 2;
-        int p2Row = 10;
-        player2GoalZone = new Rectangle(
-                p2Col * gp.tileSize,
-                p2Row * gp.tileSize,
-                gp.tileSize * 1,
-                gp.tileSize
-        );
+        // Buscar posiciones de los tiles 6 (Player1) y 7 (Player2)
+        int p1Col = -1, p1Row = -1;
+        int p2Col = -1, p2Row = -1;
+
+        for (int col = 0; col < gp.maxWorldCol; col++) {
+            for (int row = 0; row < gp.maxWorldRow; row++) {
+                int tileNum = gp.tileM.mapTileNum[currentMap][col][row];
+
+                if (tileNum == 6) {
+                    p1Col = col;
+                    p1Row = row;
+                }
+                else if (tileNum == 7) {
+                    p2Col = col;
+                    p2Row = row;
+                }
+            }
+        }
+
+        // Crear zonas de meta si se encontraron los tiles
+        if (p1Col != -1 && p1Row != -1) {
+            player1GoalZone = new Rectangle(
+                    p1Col * gp.tileSize,
+                    p1Row * gp.tileSize,
+                    gp.tileSize,
+                    gp.tileSize
+            );
+            System.out.println("✅ Zona P1 (tile 6) configurada en: col=" + p1Col + ", row=" + p1Row);
+        } else {
+            player1GoalZone = null;
+            System.err.println("⚠️ No se encontró tile 6 (zona P1) en el nivel " + (currentMap + 1));
+        }
+
+        if (p2Col != -1 && p2Row != -1) {
+            player2GoalZone = new Rectangle(
+                    p2Col * gp.tileSize,
+                    p2Row * gp.tileSize,
+                    gp.tileSize,
+                    gp.tileSize
+            );
+            System.out.println("✅ Zona P2 (tile 7) configurada en: col=" + p2Col + ", row=" + p2Row);
+        } else {
+            player2GoalZone = null;
+            System.err.println("⚠️ No se encontró tile 7 (zona P2) en el nivel " + (currentMap + 1));
+        }
+
+        // Resetear estados
+        player1InGoal = false;
+        player2InGoal = false;
     }
 
     public void checkEvent() {
@@ -114,7 +150,6 @@ public class EventHandler {
         }
 
         if(player1GoalZone == null || player2GoalZone == null) {
-            setupGoalZones();
             return;
         }
 
@@ -165,7 +200,6 @@ public class EventHandler {
         }
 
         if (map == gp.currentMap) {
-            // Verificar ambos jugadores usando las clases específicas
             Entity[] players = {gp.player, gp.player2};
 
             for(Entity player : players) {
