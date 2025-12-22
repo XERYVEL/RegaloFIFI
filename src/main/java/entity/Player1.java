@@ -144,7 +144,7 @@ public class Player1 extends Entity {
 
         if(velocityY > 0) {
             // Cayendo
-            direction = Direccion.Abajo;
+
             gp.cChecker.checkTile(this);
 
             if(checkPlayerCollisionFromAbove()) {
@@ -161,7 +161,7 @@ public class Player1 extends Entity {
             }
         } else if(velocityY < 0) {
             // Subiendo
-            direction = Direccion.Arriba;
+
             gp.cChecker.checkTile(this);
 
             if(checkPlayerCollision(0, (int)velocityY)) {

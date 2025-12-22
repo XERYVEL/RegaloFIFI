@@ -71,7 +71,7 @@ public class Entity {
         gp.cChecker.checkTile(this);
 
         if (!collisionOn) {
-            switch (direction) {
+                switch (direction) {
                 case Arriba -> worldY -= speed;
                 case Abajo -> worldY += speed;
                 case Izquierda -> worldX -= speed;

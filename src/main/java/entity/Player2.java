@@ -48,7 +48,7 @@ public class Player2 extends Entity {
 
     public void setDefaultValues() {
         // Posición inicial Player 2
-        worldX = 4 * gp.tileSize;
+        worldX = 11 * gp.tileSize;
         worldY = 10 * gp.tileSize;
         speed = 4;
         direction = Direccion.Derecha;
@@ -89,6 +89,7 @@ public class Player2 extends Entity {
             moveHorizontal(speed);
             moving = true;
         }
+
 
         if (keyH.arrowUpPressed && canJump && isGrounded) {
             jump();
@@ -138,7 +139,7 @@ public class Player2 extends Entity {
 
         if(velocityY > 0) {
             // Cayendo
-            direction = Direccion.Abajo;
+
             gp.cChecker.checkTile(this);
 
             if(checkPlayerCollisionFromAbove()) {
@@ -155,7 +156,7 @@ public class Player2 extends Entity {
             }
         } else if(velocityY < 0) {
             // Subiendo
-            direction = Direccion.Arriba;
+
             gp.cChecker.checkTile(this);
 
             if(checkPlayerCollision(0, (int)velocityY)) {
@@ -287,7 +288,7 @@ public class Player2 extends Entity {
 
         // Debug
         if(gp.keyH.checkDrawTime) {
-            g2.setColor(new Color(255, 122, 122));
+            g2.setColor(new Color(255, 50, 50));
             g2.drawRect(worldX + solidArea.x, worldY + solidArea.y,
                     solidArea.width, solidArea.height);
 
