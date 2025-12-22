@@ -301,8 +301,15 @@ public class gamePanel extends JPanel implements Runnable {
             return;
         }
         else {
+            // Dibujar tiles del mapa
             tileM.draw(g2);
 
+            // DIBUJAR ZONAS DE META (después del mapa, antes de las entidades)
+            if(eHandler != null && gameState == playState) {
+
+            }
+
+            // Agregar entidades a la lista
             entityList.clear();
 
             if(player != null) {
