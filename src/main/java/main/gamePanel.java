@@ -35,7 +35,7 @@ public class gamePanel extends JPanel implements Runnable {
     int FPS = 60;
 
     public Reloj reloj;
-    TileManager tileM;
+    public TileManager tileM;
 
     public KeyHandler keyH;
     Sonido sonido = new Sonido();
@@ -200,6 +200,30 @@ public class gamePanel extends JPanel implements Runnable {
             System.out.println("Partida cargada: " + nombreJugador + " - Nivel " + (selectedLevel + 1));
         } else {
             System.err.println("Error: No se pudo cargar la partida de " + nombreJugador);
+        }
+    }
+
+    /**
+     * Carga un nivel específico y configura sus zonas de victoria
+     * @param levelIndex El índice del nivel (0-15)
+     */
+    public void loadLevel(int levelIndex) {
+        // Cambiar el currentMap al nivel seleccionado
+        currentMap = levelIndex;
+
+        System.out.println("🎮 Cargando nivel " + (levelIndex + 1));
+
+        // Configurar las zonas de meta para este nivel
+        if(eHandler != null) {
+            eHandler.setupGoalZonesForCurrentMap();
+        }
+
+        // Resetear posiciones de los jugadores a las posiciones iniciales
+        if(player != null) {
+            player.setDefaultValues();
+        }
+        if(player2 != null) {
+            player2.setDefaultValues();
         }
     }
 

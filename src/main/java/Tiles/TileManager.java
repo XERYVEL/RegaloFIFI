@@ -25,20 +25,29 @@ public class TileManager {
 
         getTileImage();
 
-        // Cargar el nivel 1 (20x12)
-        loadMap("/Mapas/LEVEL1.txt", 0);
+        // Cargar todos los 16 niveles
+        loadAllLevels();
     }
 
     public void getTileImage() {
-        // Tiles según el archivo LEVEL1.txt
+        // Tiles según el archivo LEVEL.txt
         setup(0, "borde", false);        // 0: Aire/espacio vacío
         setup(1, "borde", true);         // 1: Pared/obstáculo
         setup(2, "piso", true);          // 2: Piso/plataforma
         setup(3, "borde", true);         // 3: Borde del mapa
         setup(4, "fondo", false);        // 4: Fondo decorativo
         setup(5, "piso", true);          // 5: Piso especial
-        setup(6, "puertaH", false);      // 6: Puerta del hombre
-        setup(7, "puertaM", false);      // 7: Puerta de la mujer
+        setup(6, "puertaH", false);      // 6: Puerta del hombre (Player 1 - Azul)
+        setup(7, "puertaM", false);      // 7: Puerta de la mujer (Player 2 - Rojo)
+    }
+
+    public void loadAllLevels() {
+        // Cargar los 16 niveles
+        for (int i = 1; i <= 16; i++) {
+            String levelFile = "/Mapas/LEVEL" + i + ".txt";
+            int mapIndex = i - 1; // El índice del array empieza en 0
+            loadMap(levelFile, mapIndex);
+        }
     }
 
     public void setup(int index, String imageName, boolean collision) {
@@ -48,13 +57,11 @@ public class TileManager {
             tile[index] = new Tile();
             tile[index].collision = collision;
 
-            // IMPORTANTE: getResourceAsStream usa rutas relativas desde el classpath
             InputStream is = getClass().getResourceAsStream("/Tiles/" + imageName + ".png");
 
             if (is == null) {
                 System.err.println("⚠️  Tile " + index + " no encontrado: /Tiles/" + imageName + ".png");
                 System.err.println("   Usando tile temporal de color");
-                // Crear tile temporal de color sólido
                 tile[index].Image = createTemporaryColorTile(index, gp.tileSize, gp.tileSize);
             } else {
                 tile[index].Image = ImageIO.read(is);
@@ -75,46 +82,42 @@ public class TileManager {
         }
     }
 
-    // Método temporal para crear tiles de colores cuando no hay imágenes
     private java.awt.image.BufferedImage createTemporaryColorTile(int index, int width, int height) {
         java.awt.image.BufferedImage image = new java.awt.image.BufferedImage(
                 width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = image.createGraphics();
 
-        // Colores según el tipo de tile
         switch(index) {
-            case 0: // Aire/borde - gris oscuro
+            case 0:
                 g2.setColor(new Color(60, 60, 60));
                 break;
-            case 1: // Borde - negro
+            case 1:
                 g2.setColor(new Color(30, 30, 30));
                 break;
-            case 2: // Piso - marrón
+            case 2:
                 g2.setColor(new Color(139, 69, 19));
                 break;
-            case 3: // Borde exterior - negro sólido
+            case 3:
                 g2.setColor(new Color(20, 20, 20));
                 break;
-            case 4: // Fondo - celeste claro
+            case 4:
                 g2.setColor(new Color(173, 216, 230));
                 break;
-            case 5: // Piso especial - marrón claro
+            case 5:
                 g2.setColor(new Color(160, 82, 45));
                 break;
-            case 6: // Puerta H (Player 1) - azul
+            case 6:
                 g2.setColor(new Color(0, 100, 200));
                 break;
-            case 7: // Puerta M (Player 2) - rojo
+            case 7:
                 g2.setColor(new Color(200, 50, 50));
                 break;
             default:
                 g2.setColor(new Color(150, 150, 150));
         }
 
-        // Rellenar el tile completo
         g2.fillRect(0, 0, width, height);
 
-        // Agregar borde solo a tiles sólidos (no al fondo)
         if(index != 4) {
             g2.setColor(new Color(0, 0, 0, 100));
             g2.setStroke(new BasicStroke(1));
@@ -127,12 +130,10 @@ public class TileManager {
 
     public void loadMap(String filePath, int map) {
         try {
-            // IMPORTANTE: La ruta debe empezar con / y ser relativa al classpath
             InputStream is = getClass().getResourceAsStream(filePath);
 
             if (is == null) {
                 System.err.println("❌ No se encontró el mapa: " + filePath);
-                System.err.println("   Verifica que el archivo existe en: res" + filePath);
                 return;
             }
 
@@ -145,21 +146,16 @@ public class TileManager {
             while (row < gp.maxWorldRow) {
                 String line = br.readLine();
                 if (line == null) {
-                    System.err.println("⚠️ El mapa tiene menos filas de lo esperado (tiene " + row + ", esperaba " + gp.maxWorldRow + ")");
+                    System.err.println("⚠️ El mapa tiene menos filas de lo esperado");
                     break;
                 }
 
                 String[] numbers = line.trim().split(" ");
 
-                if (numbers.length < gp.maxWorldCol) {
-                    System.err.println("⚠️ La fila " + row + " tiene menos columnas de lo esperado (tiene " + numbers.length + ", esperaba " + gp.maxWorldCol + ")");
-                }
-
                 for (int col = 0; col < gp.maxWorldCol && col < numbers.length; col++) {
                     try {
                         mapTileNum[map][col][row] = Integer.parseInt(numbers[col].trim());
                     } catch (NumberFormatException e) {
-                        System.err.println("❌ Error parseando número en fila " + row + ", col " + col + ": " + numbers[col]);
                         mapTileNum[map][col][row] = 0;
                     }
                 }
@@ -169,26 +165,10 @@ public class TileManager {
             br.close();
             is.close();
 
-            System.out.println("✅ Mapa cargado exitosamente: " + filePath + " (" + gp.maxWorldCol + "x" + gp.maxWorldRow + ")");
-
-            // Debug: mostrar qué tiles se usan en el mapa
-            System.out.println("📊 Tiles usados en el mapa:");
-            int[] tileCount = new int[10];
-            for (int c = 0; c < gp.maxWorldCol; c++) {
-                for (int r = 0; r < gp.maxWorldRow; r++) {
-                    int tileNum = mapTileNum[map][c][r];
-                    if (tileNum < 10) tileCount[tileNum]++;
-                }
-            }
-            for (int i = 0; i < 10; i++) {
-                if (tileCount[i] > 0) {
-                    System.out.println("   Tile " + i + ": " + tileCount[i] + " veces");
-                }
-            }
+            System.out.println("✅ Mapa " + (map + 1) + " cargado exitosamente");
 
         } catch (Exception e) {
             System.err.println("❌ Error cargando mapa " + filePath + ": " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -196,7 +176,6 @@ public class TileManager {
         int worldCol = 0;
         int worldRow = 0;
 
-        // Dibujar directamente en pantalla (cámara fija)
         while (worldCol < gp.maxScreenCol && worldRow < gp.maxScreenRow) {
 
             int tileNum = mapTileNum[gp.currentMap][worldCol][worldRow];
@@ -204,15 +183,12 @@ public class TileManager {
             int screenX = worldCol * gp.tileSize;
             int screenY = worldRow * gp.tileSize;
 
-            // Verificar que el tile existe
             if (tile[tileNum] != null && tile[tileNum].Image != null) {
                 g2.drawImage(tile[tileNum].Image, screenX, screenY, null);
             } else {
-                // Si no existe el tile, dibujar un cuadrado de color gris
                 g2.setColor(new Color(100, 100, 100));
                 g2.fillRect(screenX, screenY, gp.tileSize, gp.tileSize);
 
-                // Borde negro
                 g2.setColor(Color.BLACK);
                 g2.drawRect(screenX, screenY, gp.tileSize - 1, gp.tileSize - 1);
             }
