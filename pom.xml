@@ -44,6 +44,13 @@
             <artifactId>javafx-swing</artifactId>
             <version>${javafx.version}</version>
         </dependency>
+
+        <!-- JSON Simple para manejo de archivos JSON -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20231013</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -63,7 +70,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>main.Main</mainClass> <!-- Cambiar según tu Main -->
+                    <mainClass>main.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>

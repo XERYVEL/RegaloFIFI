@@ -1,0 +1,50 @@
+[
+    {
+        "tiempoTotal": 0,
+        "fechaGuardado": "19/12/2025 21:24",
+        "nombreJugador": "Xeryvel",
+        "nivelActual": 3,
+        "nivelesCompletados": [
+            true,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ]
+    },
+    {
+        "tiempoTotal": 0,
+        "fechaGuardado": "21/12/2025 22:28",
+        "nombreJugador": "Xer",
+        "nivelActual": 0,
+        "nivelesCompletados": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ]
+    }
+]

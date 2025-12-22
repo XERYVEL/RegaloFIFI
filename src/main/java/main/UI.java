@@ -3,6 +3,7 @@ package main;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public class UI {
 
@@ -12,6 +13,14 @@ public class UI {
 
     public int commandNum = 0;
     public int titleScreenState = 0;
+
+    // Variables para input de nombre
+    public String nombreInput = "";
+    public int maxNombreLength = 15;
+
+    // Variables para selección de partida guardada
+    public int selectedSaveSlot = 0;
+    public List<SaveSystem.SaveData> partidasGuardadas;
 
     public void drawTitleScreen() {
         if (titleScreenState == 0) {
@@ -69,12 +78,29 @@ public class UI {
                 g2.drawString(">", x - gp.tileSize, y);
             }
 
+            // NUEVA OPCIÓN: Continuar
+            text = "Continuar";
+            x = getXforCenteredText(text);
+            y += gp.tileSize;
+
+            // Si no hay partidas guardadas, mostrar en gris
+            if (!gp.saveSystem.hayPartidasGuardadas()) {
+                g2.setColor(new Color(100, 100, 100));
+            } else {
+                g2.setColor(Color.white);
+            }
+            g2.drawString(text, x, y);
+            if (commandNum == 1) {
+                g2.setColor(new Color(255, 255, 0));
+                g2.drawString(">", x - gp.tileSize, y);
+            }
+
             text = "Salir";
             x = getXforCenteredText(text);
             y += gp.tileSize;
             g2.setColor(Color.white);
             g2.drawString(text, x, y);
-            if (commandNum == 1) {
+            if (commandNum == 2) {
                 g2.setColor(new Color(255, 255, 0));
                 g2.drawString(">", x - gp.tileSize, y);
             }
@@ -102,9 +128,184 @@ public class UI {
         }
     }
 
+    // NUEVA FUNCIÓN: Pantalla de ingreso de nombre
+    public void drawNameInputScreen() {
+        g2.setColor(new Color(0, 0, 0));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 56F));
+        g2.setColor(Color.white);
+        String text = "Ingresa tu nombre";
+        int x = getXforCenteredText(text);
+        int y = gp.tileSize * 3;
+        g2.drawString(text, x, y);
+
+        // Cuadro de texto para el nombre
+        y += gp.tileSize * 2;
+        int boxWidth = 500;
+        int boxHeight = 80;
+        int boxX = gp.screenWidth / 2 - boxWidth / 2;
+        int boxY = y - 60;
+
+        g2.setColor(new Color(50, 50, 50));
+        g2.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 15, 15);
+
+        g2.setColor(new Color(255, 255, 100));
+        g2.setStroke(new BasicStroke(3));
+        g2.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 15, 15);
+
+        // Mostrar nombre ingresado
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 42F));
+        g2.setColor(Color.white);
+        String displayText = nombreInput.isEmpty() ? "_" : nombreInput + "_";
+        int textWidth = (int)g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
+        g2.drawString(displayText, boxX + boxWidth/2 - textWidth/2, y);
+
+        // Instrucciones
+        y += gp.tileSize * 2;
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 24F));
+        g2.setColor(new Color(200, 200, 200));
+        text = "Usa el teclado para escribir tu nombre";
+        x = getXforCenteredText(text);
+        g2.drawString(text, x, y);
+
+        y += 40;
+        text = "Presiona ENTER para continuar";
+        x = getXforCenteredText(text);
+        g2.setColor(new Color(100, 255, 100));
+        g2.drawString(text, x, y);
+
+        y += 40;
+        text = "ESC para volver";
+        x = getXforCenteredText(text);
+        g2.setColor(new Color(255, 100, 100));
+        g2.drawString(text, x, y);
+
+        // Contador de caracteres
+        y += 60;
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 20F));
+        g2.setColor(new Color(150, 150, 150));
+        text = nombreInput.length() + "/" + maxNombreLength + " caracteres";
+        x = getXforCenteredText(text);
+        g2.drawString(text, x, y);
+    }
+
+    // NUEVA FUNCIÓN: Pantalla de carga de partidas
+    public void drawLoadGameScreen() {
+        g2.setColor(new Color(0, 0, 0));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 56F));
+        g2.setColor(Color.white);
+        String text = "Selecciona una Partida";
+        int x = getXforCenteredText(text);
+        int y = gp.tileSize * 2;
+        g2.drawString(text, x, y);
+
+        // Cargar partidas guardadas
+        if (partidasGuardadas == null) {
+            partidasGuardadas = gp.saveSystem.cargarTodasLasPartidas();
+        }
+
+        if (partidasGuardadas.isEmpty()) {
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
+            g2.setColor(new Color(255, 100, 100));
+            text = "No hay partidas guardadas";
+            x = getXforCenteredText(text);
+            y += gp.tileSize * 3;
+            g2.drawString(text, x, y);
+
+            y += 60;
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 24F));
+            g2.setColor(Color.white);
+            text = "Presiona ESC para volver";
+            x = getXforCenteredText(text);
+            g2.drawString(text, x, y);
+            return;
+        }
+
+        y += gp.tileSize;
+        int slotHeight = 100;
+        int slotWidth = 700;
+        int startY = y;
+
+        for (int i = 0; i < partidasGuardadas.size(); i++) {
+            SaveSystem.SaveData save = partidasGuardadas.get(i);
+
+            int slotX = gp.screenWidth / 2 - slotWidth / 2;
+            int slotY = startY + (i * (slotHeight + 20));
+
+            // Fondo del slot
+            if (i == selectedSaveSlot) {
+                g2.setColor(new Color(100, 100, 150, 200));
+            } else {
+                g2.setColor(new Color(50, 50, 50, 180));
+            }
+            g2.fillRoundRect(slotX, slotY, slotWidth, slotHeight, 15, 15);
+
+            // Borde
+            if (i == selectedSaveSlot) {
+                g2.setColor(new Color(255, 255, 100));
+                g2.setStroke(new BasicStroke(4));
+            } else {
+                g2.setColor(new Color(100, 100, 100));
+                g2.setStroke(new BasicStroke(2));
+            }
+            g2.drawRoundRect(slotX, slotY, slotWidth, slotHeight, 15, 15);
+
+            // Información de la partida
+            int textX = slotX + 20;
+            int textY = slotY + 35;
+
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 32F));
+            g2.setColor(Color.white);
+            g2.drawString(save.nombreJugador, textX, textY);
+
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 22F));
+            textY += 30;
+            g2.setColor(new Color(200, 200, 200));
+
+            int completados = 0;
+            for (boolean b : save.nivelesCompletados) {
+                if (b) completados++;
+            }
+
+            g2.drawString("Nivel " + (save.nivelActual + 1) + " | Completados: " + completados + "/16", textX, textY);
+
+            textY += 25;
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 18F));
+            g2.setColor(new Color(150, 150, 150));
+            g2.drawString("Última vez: " + save.fechaGuardado, textX, textY);
+
+            // Selector
+            if (i == selectedSaveSlot) {
+                g2.setColor(new Color(255, 255, 100));
+                g2.setFont(g2.getFont().deriveFont(Font.BOLD, 40F));
+                g2.drawString(">", slotX - 40, slotY + slotHeight/2 + 10);
+            }
+        }
+
+        // Instrucciones
+        y = gp.screenHeight - gp.tileSize;
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 20F));
+        g2.setColor(Color.white);
+        text = "W/S: Seleccionar | ENTER: Cargar | DELETE: Eliminar | ESC: Volver";
+        x = getXforCenteredText(text);
+        g2.drawString(text, x, y);
+    }
+
     public void drawLevelSelectScreen() {
         g2.setColor(new Color(0, 0, 0));
         g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        // Mostrar nombre del jugador arriba
+        if (!gp.nombreJugadorActual.isEmpty()) {
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 28F));
+            g2.setColor(new Color(100, 255, 100));
+            String playerName = "Jugador: " + gp.nombreJugadorActual;
+            int nameX = gp.tileSize / 2;
+            g2.drawString(playerName, nameX, 35);
+        }
 
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F));
         g2.setColor(Color.white);
@@ -191,7 +392,6 @@ public class UI {
             }
         }
 
-        // BOTÓN FINAL
         int finalButtonY = gridStartY + 4 * (levelSize + 10) + 20;
         int finalButtonWidth = levelSize * 2 + 10;
         int finalButtonHeight = levelSize;
@@ -404,6 +604,16 @@ public class UI {
 
         if (gp.gameState == gp.titleState) {
             drawTitleScreen();
+            return;
+        }
+
+        if (gp.gameState == gp.nameInputState) {
+            drawNameInputScreen();
+            return;
+        }
+
+        if (gp.gameState == gp.loadGameState) {
+            drawLoadGameScreen();
             return;
         }
 
