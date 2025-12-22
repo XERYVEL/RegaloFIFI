@@ -8,7 +8,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-public class Player extends Entity {
+public class Player1 extends Entity {
 
     KeyHandler keyH;
     public final int screenX;
@@ -22,15 +22,13 @@ public class Player extends Entity {
     private boolean isGrounded = false;
     private boolean canJump = true;
 
-    public int playerNumber; // 1 o 2
     public int panDeAjoCount = 0;
     public ArrayList<Entity> inventory = new ArrayList<>();
     public final int maxInventorySize = 20;
 
-    public Player(gamePanel gp, KeyHandler keyH, int playerNumber) {
+    public Player1(gamePanel gp, KeyHandler keyH) {
         super(gp);
         this.keyH = keyH;
-        this.playerNumber = playerNumber;
 
         // Posición fija en pantalla
         screenX = 0;
@@ -46,22 +44,14 @@ public class Player extends Entity {
         solidAreaDefaultY = solidArea.y;
 
         setDefaultValues();
-        getPlayersImage();
-        if(playerNumber == 1) {
-            setItems();
-        }
+        getPlayerImage();
+        setItems();
     }
 
     public void setDefaultValues() {
-        // Posiciones iniciales sobre el piso (fila 11)
-        // Los jugadores aparecen en la fila 10 (justo sobre el piso)
-        if(playerNumber == 1) {
-            worldX = 10 * gp.tileSize;
-            worldY = 10 * gp.tileSize;
-        } else {
-            worldX = 4 * gp.tileSize;
-            worldY = 10 * gp.tileSize;
-        }
+        // Posición inicial Player 1
+        worldX = 10 * gp.tileSize;
+        worldY = 10 * gp.tileSize;
         speed = 4;
         direction = Direccion.Derecha;
 
@@ -75,26 +65,16 @@ public class Player extends Entity {
         inventory.add(new OBJ_sube(gp));
     }
 
-    public void getPlayersImage() {
-        if(playerNumber == 1) {
-            up1 = setup("/player/frente");
-            up2 = setup("/player/frente");
-            down1 = setup("/player/frente");
-            down2 = setup("/player/frente");
-            left1 = setup("/player/frente");
-            left2 = setup("/player/frente");
-            right1 = setup("/player/frente");
-            right2 = setup("/player/frente");
-        } else {
-            up1 = setup("/player/frenteH");
-            up2 = setup("/player/frenteH");
-            down1 = setup("/player/frenteH");
-            down2 = setup("/player/frenteH");
-            left1 = setup("/player/izquierdaH1");
-            left2 = setup("/player/izquierdaH2");
-            right1 = setup("/player/derechaH1");
-            right2 = setup("/player/derechaH2");
-        }
+    public void getPlayerImage() {
+        // Player 1 - Mujer (sprites originales)
+        up1 = setup("/player/frenteM");
+        up2 = setup("/player/frenteM");
+        down1 = setup("/player/frenteM");
+        down2 = setup("/player/frenteM");
+        left1 = setup("/player/izquierdaM1");
+        left2 = setup("/player/izquierdaM2");
+        right1 = setup("/player/derechaM1");
+        right2 = setup("/player/derechaM2");
     }
 
     public void update() {
@@ -104,42 +84,26 @@ public class Player extends Entity {
 
         boolean moving = false;
 
-        if(playerNumber == 1) {
-            // Player 1: WASD
-            if (keyH.leftPressed) {
-                direction = Direccion.Izquierda;
-                moveHorizontal(-speed);
-                moving = true;
-            }
-            if (keyH.rightPressed) {
-                direction = Direccion.Derecha;
-                moveHorizontal(speed);
-                moving = true;
-            }
-            if (keyH.upPressed && canJump && isGrounded) {
-                jump();
-            }
-        } else {
-            // Player 2: Flechas
-            if (keyH.arrowLeftPressed) {
-                direction = Direccion.Izquierda;
-                moveHorizontal(-speed);
-                moving = true;
-            }
-            if (keyH.arrowRightPressed) {
-                direction = Direccion.Derecha;
-                moveHorizontal(speed);
-                moving = true;
-            }
-            if (keyH.arrowUpPressed && canJump && isGrounded) {
-                jump();
-            }
+        // Player 1: WASD
+        if (keyH.leftPressed) {
+            direction = Direccion.Izquierda;
+            moveHorizontal(-speed);
+            moving = true;
+        }
+        else if (keyH.rightPressed) {
+            direction = Direccion.Derecha;
+            moveHorizontal(speed);
+            moving = true;
+        }
+
+        if (keyH.upPressed && canJump && isGrounded) {
+            jump();
         }
 
         // Aplicar gravedad
         applyGravity();
 
-        // Actualizar animación
+        // Actualizar animación solo si se está moviendo
         if(moving) {
             spriteCounter++;
             if (spriteCounter > 10) {
@@ -153,7 +117,6 @@ public class Player extends Entity {
         collisionOn = false;
 
         int oldX = worldX;
-
         worldX += speedX;
 
         gp.cChecker.checkTile(this);
@@ -175,7 +138,6 @@ public class Player extends Entity {
         }
 
         int oldY = worldY;
-
         worldY += (int)velocityY;
 
         collisionOn = false;
@@ -215,9 +177,7 @@ public class Player extends Entity {
     }
 
     private boolean checkPlayerCollision(int deltaX, int deltaY) {
-        Player otherPlayer = (playerNumber == 1) ? gp.player2 : gp.player;
-
-        if(otherPlayer == null) {
+        if(gp.player2 == null) {
             return false;
         }
 
@@ -229,19 +189,17 @@ public class Player extends Entity {
         );
 
         Rectangle otherRect = new Rectangle(
-                otherPlayer.worldX + otherPlayer.solidArea.x,
-                otherPlayer.worldY + otherPlayer.solidArea.y,
-                otherPlayer.solidArea.width,
-                otherPlayer.solidArea.height
+                gp.player2.worldX + gp.player2.solidArea.x,
+                gp.player2.worldY + gp.player2.solidArea.y,
+                gp.player2.solidArea.width,
+                gp.player2.solidArea.height
         );
 
         return thisRect.intersects(otherRect);
     }
 
     private boolean checkPlayerCollisionFromAbove() {
-        Player otherPlayer = (playerNumber == 1) ? gp.player2 : gp.player;
-
-        if(otherPlayer == null) {
+        if(gp.player2 == null) {
             return false;
         }
 
@@ -253,15 +211,15 @@ public class Player extends Entity {
         );
 
         Rectangle otherRect = new Rectangle(
-                otherPlayer.worldX + otherPlayer.solidArea.x,
-                otherPlayer.worldY + otherPlayer.solidArea.y,
-                otherPlayer.solidArea.width,
-                otherPlayer.solidArea.height
+                gp.player2.worldX + gp.player2.solidArea.x,
+                gp.player2.worldY + gp.player2.solidArea.y,
+                gp.player2.solidArea.width,
+                gp.player2.solidArea.height
         );
 
         if(velocityY > 0 && thisRect.intersects(otherRect)) {
             int thisFeet = worldY + solidArea.y + solidArea.height;
-            int otherHead = otherPlayer.worldY + otherPlayer.solidArea.y;
+            int otherHead = gp.player2.worldY + gp.player2.solidArea.y;
 
             if(thisFeet >= otherHead && thisFeet <= otherHead + 16) {
                 return true;
@@ -335,7 +293,7 @@ public class Player extends Entity {
 
         // Debug
         if(gp.keyH.checkDrawTime) {
-            g2.setColor(playerNumber == 1 ? Color.RED : Color.GREEN);
+            g2.setColor(new Color(0, 120, 255));
             g2.drawRect(worldX + solidArea.x, worldY + solidArea.y,
                     solidArea.width, solidArea.height);
 
@@ -346,7 +304,7 @@ public class Player extends Entity {
 
             g2.setColor(Color.WHITE);
             g2.setFont(new Font("Arial", Font.BOLD, 12));
-            g2.drawString("P" + playerNumber, worldX + 2, worldY + 12);
+            g2.drawString("P1", worldX + 2, worldY + 12);
         }
     }
 }

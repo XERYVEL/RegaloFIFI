@@ -135,14 +135,12 @@ public class Entity {
 
         // Color base según el tipo de entidad
         Color mainColor;
-        if (this.getClass().getSimpleName().contains("Player")) {
-            // Diferenciar jugadores por número si es posible
-            Player p = (Player) this;
-            if (p.playerNumber == 1) {
-                mainColor = new Color(0, 120, 255); // Azul para Player 1
-            } else {
-                mainColor = new Color(255, 50, 50); // Rojo para Player 2
-            }
+
+        // Detectar tipo de entidad usando instanceof
+        if (this instanceof Player1) {
+            mainColor = new Color(0, 120, 255); // Azul para Player 1
+        } else if (this instanceof Player2) {
+            mainColor = new Color(255, 50, 50); // Rojo para Player 2
         } else if (this.getClass().getSimpleName().contains("NPC")) {
             mainColor = new Color(255, 150, 0); // Naranja para NPCs
         } else {

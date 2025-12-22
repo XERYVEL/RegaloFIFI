@@ -49,12 +49,12 @@
     },
     {
         "tiempoTotal": 0,
-        "fechaGuardado": "21/12/2025 23:39",
+        "fechaGuardado": "22/12/2025 13:09",
         "nombreJugador": "dd",
-        "nivelActual": 1,
+        "nivelActual": 2,
         "nivelesCompletados": [
             true,
-            false,
+            true,
             false,
             false,
             false,

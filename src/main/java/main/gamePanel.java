@@ -2,7 +2,8 @@ package main;
 
 import Tiles.TileManager;
 import entity.Entity;
-import entity.Player;
+import entity.Player1;
+import entity.Player2;
 import varios.Reloj;
 import javafx.application.Platform;
 import javax.swing.JPanel;
@@ -44,8 +45,8 @@ public class gamePanel extends JPanel implements Runnable {
     public AssetSetter aSetter;
     public UI ui;
 
-    public Player player;
-    public Player player2;
+    public Player1 player;
+    public Player2 player2;
 
     public EventHandler eHandler;
     public Entity obj[][] = new Entity[maxMap][10];
@@ -73,8 +74,8 @@ public class gamePanel extends JPanel implements Runnable {
     public final int videoState = 6;
     public final int levelSelectState = 7;
     public final int finalScreenState = 8;
-    public final int loadGameState = 9; // NUEVO: pantalla para cargar partidas
-    public final int nameInputState = 10; // NUEVO: pantalla para ingresar nombre
+    public final int loadGameState = 9;
+    public final int nameInputState = 10;
 
     public gamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -91,7 +92,7 @@ public class gamePanel extends JPanel implements Runnable {
         cChecker = new CollisionChecker(this);
         aSetter = new AssetSetter(this);
         eHandler = new EventHandler(this);
-        saveSystem = new SaveSystem(); // Inicializar sistema de guardado
+        saveSystem = new SaveSystem();
 
         videos = new VideosSwing(screenWidth, screenHeight);
 
@@ -150,8 +151,8 @@ public class gamePanel extends JPanel implements Runnable {
         videoMostrado2 = false;
         tieneCupon = false;
 
-        player = new Player(this, keyH, 1);
-        player2 = new Player(this, keyH, 2);
+        player = new Player1(this, keyH);
+        player2 = new Player2(this, keyH);
 
         aSetter.setObject();
         aSetter.setNPC();
@@ -168,16 +169,13 @@ public class gamePanel extends JPanel implements Runnable {
         gameState = titleState;
     }
 
-    // Nueva función para iniciar una nueva partida
     public void iniciarNuevaPartida(String nombreJugador) {
         this.nombreJugadorActual = nombreJugador;
 
-        // Resetear todos los niveles
         for(int i = 0; i < levelCompleted.length; i++) {
             levelCompleted[i] = false;
         }
 
-        // Crear y guardar la partida
         saveSystem.guardarPartida(nombreJugador, 0, levelCompleted);
         partidaActual = saveSystem.cargarPartida(nombreJugador);
 
@@ -185,7 +183,6 @@ public class gamePanel extends JPanel implements Runnable {
         gameState = levelSelectState;
     }
 
-    // Nueva función para cargar una partida existente
     public void cargarPartida(String nombreJugador) {
         SaveSystem.SaveData save = saveSystem.cargarPartida(nombreJugador);
 
@@ -193,7 +190,6 @@ public class gamePanel extends JPanel implements Runnable {
             this.nombreJugadorActual = nombreJugador;
             this.partidaActual = save;
 
-            // Restaurar niveles completados
             for(int i = 0; i < save.nivelesCompletados.length && i < levelCompleted.length; i++) {
                 levelCompleted[i] = save.nivelesCompletados[i];
             }
@@ -212,9 +208,7 @@ public class gamePanel extends JPanel implements Runnable {
             levelCompleted[levelNumber] = true;
             System.out.println("¡Nivel " + (levelNumber + 1) + " completado!");
 
-            // Guardar progreso automáticamente
             if (!nombreJugadorActual.isEmpty()) {
-                // Avanzar al siguiente nivel si no es el último
                 int siguienteNivel = (levelNumber + 1 < levelCompleted.length) ? levelNumber + 1 : levelNumber;
                 saveSystem.guardarPartida(nombreJugadorActual, siguienteNivel, levelCompleted);
                 partidaActual = saveSystem.cargarPartida(nombreJugadorActual);
@@ -301,15 +295,8 @@ public class gamePanel extends JPanel implements Runnable {
             return;
         }
         else {
-            // Dibujar tiles del mapa
             tileM.draw(g2);
 
-            // DIBUJAR ZONAS DE META (después del mapa, antes de las entidades)
-            if(eHandler != null && gameState == playState) {
-
-            }
-
-            // Agregar entidades a la lista
             entityList.clear();
 
             if(player != null) {
