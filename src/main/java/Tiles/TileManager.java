@@ -31,10 +31,15 @@ public class TileManager {
 
     public void getTileImage() {
         // Tile 0: Aire (sin colisión, transparente)
-        setup(0, "00", false);
+        setup(0, "borde", false);
         // Tile 1: Plataforma sólida (con colisión)
-        setup(1, "01", true);
-        setup(2, "02", true);
+        setup(1, "borde", true);
+        setup(2, "borde", true);
+        setup(3, "borde", true);
+        setup(4, "fondo", false);
+        setup(5, "piso", true);
+        setup(6, "puertaH", false);
+        setup(7, "puertaM", false);
     }
 
     public void setup(int index, String imageName, boolean collision) {

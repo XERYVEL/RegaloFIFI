@@ -28,6 +28,16 @@ public class KeyHandler implements KeyListener{
 
     @Override
     public void keyTyped(KeyEvent e) {
+        // Para input de nombre
+        if (gp.gameState == gp.nameInputState) {
+            char c = e.getKeyChar();
+
+            // Permitir letras, números y espacios
+            if ((Character.isLetterOrDigit(c) || c == ' ') &&
+                    gp.ui.nombreInput.length() < gp.ui.maxNombreLength) {
+                gp.ui.nombreInput += c;
+            }
+        }
     }
 
     @Override
@@ -36,6 +46,12 @@ public class KeyHandler implements KeyListener{
 
         if(gp.gameState == gp.titleState) {
             titleState(code);
+        }
+        else if(gp.gameState == gp.nameInputState) {
+            nameInputState(code);
+        }
+        else if(gp.gameState == gp.loadGameState) {
+            loadGameState(code);
         }
         else if(gp.gameState == gp.levelSelectState) {
             levelSelectState(code);
@@ -62,24 +78,37 @@ public class KeyHandler implements KeyListener{
             if(code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
                 gp.ui.commandNum--;
                 if(gp.ui.commandNum < 0) {
-                    gp.ui.commandNum = 1;
+                    gp.ui.commandNum = 2;
                 }
                 gp.playSE(5);
             }
             if(code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
                 gp.ui.commandNum++;
-                if(gp.ui.commandNum > 1) {
+                if(gp.ui.commandNum > 2) {
                     gp.ui.commandNum = 0;
                 }
                 gp.playSE(5);
             }
             if(code == KeyEvent.VK_ENTER) {
                 if(gp.ui.commandNum == 0) {
-                    // Ir a selección de niveles
-                    gp.gameState = gp.levelSelectState;
+                    // Nuevo Juego - ir a pantalla de nombre
+                    gp.gameState = gp.nameInputState;
+                    gp.ui.nombreInput = "";
                     gp.playSE(5);
                 }
                 else if(gp.ui.commandNum == 1) {
+                    // Continuar - verificar si hay partidas guardadas
+                    if(gp.saveSystem.hayPartidasGuardadas()) {
+                        gp.gameState = gp.loadGameState;
+                        gp.ui.partidasGuardadas = gp.saveSystem.cargarTodasLasPartidas();
+                        gp.ui.selectedSaveSlot = 0;
+                        gp.playSE(5);
+                    } else {
+                        // No hay partidas, sonido de error
+                        gp.playSE(1);
+                    }
+                }
+                else if(gp.ui.commandNum == 2) {
                     // Salir
                     System.exit(0);
                 }
@@ -87,13 +116,93 @@ public class KeyHandler implements KeyListener{
         }
     }
 
+    public void nameInputState(int code) {
+        if(code == KeyEvent.VK_BACK_SPACE) {
+            // Borrar último carácter
+            if(gp.ui.nombreInput.length() > 0) {
+                gp.ui.nombreInput = gp.ui.nombreInput.substring(0, gp.ui.nombreInput.length() - 1);
+            }
+        }
+        else if(code == KeyEvent.VK_ENTER) {
+            // Confirmar nombre
+            if(!gp.ui.nombreInput.trim().isEmpty()) {
+                gp.iniciarNuevaPartida(gp.ui.nombreInput.trim());
+                gp.playSE(5);
+            } else {
+                gp.playSE(1);
+            }
+        }
+        else if(code == KeyEvent.VK_ESCAPE) {
+            // Volver al menú principal
+            gp.gameState = gp.titleState;
+            gp.ui.nombreInput = "";
+            gp.playSE(5);
+        }
+    }
+
+    public void loadGameState(int code) {
+        if(gp.ui.partidasGuardadas == null || gp.ui.partidasGuardadas.isEmpty()) {
+            if(code == KeyEvent.VK_ESCAPE) {
+                gp.gameState = gp.titleState;
+                gp.playSE(5);
+            }
+            return;
+        }
+
+        if(code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
+            gp.ui.selectedSaveSlot--;
+            if(gp.ui.selectedSaveSlot < 0) {
+                gp.ui.selectedSaveSlot = gp.ui.partidasGuardadas.size() - 1;
+            }
+            gp.playSE(5);
+        }
+        else if(code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+            gp.ui.selectedSaveSlot++;
+            if(gp.ui.selectedSaveSlot >= gp.ui.partidasGuardadas.size()) {
+                gp.ui.selectedSaveSlot = 0;
+            }
+            gp.playSE(5);
+        }
+        else if(code == KeyEvent.VK_ENTER) {
+            // Cargar partida seleccionada
+            if(gp.ui.selectedSaveSlot < gp.ui.partidasGuardadas.size()) {
+                SaveSystem.SaveData save = gp.ui.partidasGuardadas.get(gp.ui.selectedSaveSlot);
+                gp.cargarPartida(save.nombreJugador);
+                gp.playSE(5);
+            }
+        }
+        else if(code == KeyEvent.VK_DELETE) {
+            // Eliminar partida seleccionada
+            if(gp.ui.selectedSaveSlot < gp.ui.partidasGuardadas.size()) {
+                SaveSystem.SaveData save = gp.ui.partidasGuardadas.get(gp.ui.selectedSaveSlot);
+                gp.saveSystem.eliminarPartida(save.nombreJugador);
+
+                // Recargar lista
+                gp.ui.partidasGuardadas = gp.saveSystem.cargarTodasLasPartidas();
+
+                // Ajustar selección si es necesario
+                if(gp.ui.selectedSaveSlot >= gp.ui.partidasGuardadas.size() &&
+                        gp.ui.selectedSaveSlot > 0) {
+                    gp.ui.selectedSaveSlot--;
+                }
+
+                gp.playSE(1);
+                System.out.println("Partida eliminada");
+            }
+        }
+        else if(code == KeyEvent.VK_ESCAPE) {
+            // Volver al menú principal
+            gp.gameState = gp.titleState;
+            gp.ui.partidasGuardadas = null;
+            gp.playSE(5);
+        }
+    }
+
     public void levelSelectState(int code) {
-        // Navegación por la grilla 4x4 + botón final
         if(code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
             if(gp.finalButtonSelected) {
-                // Volver a los niveles (última fila)
                 gp.finalButtonSelected = false;
-                gp.selectedLevel = 12; // Fila 3, columna 0
+                gp.selectedLevel = 12;
             } else {
                 gp.selectedLevel -= 4;
                 if(gp.selectedLevel < 0) {
@@ -105,7 +214,6 @@ public class KeyHandler implements KeyListener{
 
         if(code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
             if(!gp.finalButtonSelected) {
-                // Si estamos en la última fila (12-15), ir al botón final
                 if(gp.selectedLevel >= 12 && gp.selectedLevel <= 15) {
                     gp.finalButtonSelected = true;
                 } else {
@@ -140,26 +248,22 @@ public class KeyHandler implements KeyListener{
 
         if(code == KeyEvent.VK_ENTER) {
             if(gp.finalButtonSelected) {
-                // Ir a la pantalla final si todos los niveles están completados
                 if(gp.allLevelsCompleted()) {
                     gp.gameState = gp.finalScreenState;
                     gp.playSE(5);
                 } else {
-                    // Botón bloqueado
                     gp.playSE(1);
                     System.out.println("¡Completa todos los niveles primero!");
                 }
             } else {
-                // Verificar si el nivel está desbloqueado
                 boolean unlocked = (gp.selectedLevel == 0) || gp.levelCompleted[gp.selectedLevel - 1];
 
                 if(!unlocked) {
                     gp.playSE(1);
-                    System.out.println("¡Nivel " + (gp.selectedLevel + 1) + " bloqueado! Completa el nivel anterior primero.");
+                    System.out.println("¡Nivel " + (gp.selectedLevel + 1) + " bloqueado!");
                     return;
                 }
 
-                // Iniciar el nivel seleccionado
                 if(gp.reloj != null) {
                     gp.reloj.reiniciarTiempo();
                 }
@@ -183,7 +287,6 @@ public class KeyHandler implements KeyListener{
         }
 
         if(code == KeyEvent.VK_ESCAPE) {
-            // Volver al menú principal
             gp.gameState = gp.titleState;
             gp.finalButtonSelected = false;
             gp.playSE(5);
@@ -192,7 +295,6 @@ public class KeyHandler implements KeyListener{
 
     public void finalScreenState(int code) {
         if(code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_ENTER) {
-            // Volver a selección de niveles
             gp.gameState = gp.levelSelectState;
             gp.finalButtonSelected = false;
             gp.playSE(5);

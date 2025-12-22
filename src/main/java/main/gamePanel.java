@@ -54,9 +54,14 @@ public class gamePanel extends JPanel implements Runnable {
     ArrayList<Entity> entityList = new ArrayList<>();
 
     // Sistema de niveles
-    public boolean[] levelCompleted = new boolean[16]; // 16 niveles
-    public int selectedLevel = 0; // Nivel seleccionado en el menú
-    public boolean finalButtonSelected = false; // Para saber si el botón final está seleccionado
+    public boolean[] levelCompleted = new boolean[16];
+    public int selectedLevel = 0;
+    public boolean finalButtonSelected = false;
+
+    // Sistema de guardado
+    public SaveSystem saveSystem;
+    public String nombreJugadorActual = "";
+    public SaveSystem.SaveData partidaActual = null;
 
     public int gameState;
     public final int titleState = 0;
@@ -67,7 +72,9 @@ public class gamePanel extends JPanel implements Runnable {
     public final int characterState = 5;
     public final int videoState = 6;
     public final int levelSelectState = 7;
-    public final int finalScreenState = 8; // NUEVA PANTALLA FINAL
+    public final int finalScreenState = 8;
+    public final int loadGameState = 9; // NUEVO: pantalla para cargar partidas
+    public final int nameInputState = 10; // NUEVO: pantalla para ingresar nombre
 
     public gamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -84,6 +91,7 @@ public class gamePanel extends JPanel implements Runnable {
         cChecker = new CollisionChecker(this);
         aSetter = new AssetSetter(this);
         eHandler = new EventHandler(this);
+        saveSystem = new SaveSystem(); // Inicializar sistema de guardado
 
         videos = new VideosSwing(screenWidth, screenHeight);
 
@@ -95,7 +103,6 @@ public class gamePanel extends JPanel implements Runnable {
         videos.loadVideo("pavon", "res/Videos/MercadoPatio.mp4");
         videos.loadVideo("monu", "res/Videos/Monumento.mp4");
 
-        // Inicializar niveles completados (todos en false)
         for(int i = 0; i < levelCompleted.length; i++) {
             levelCompleted[i] = false;
         }
@@ -161,10 +168,58 @@ public class gamePanel extends JPanel implements Runnable {
         gameState = titleState;
     }
 
+    // Nueva función para iniciar una nueva partida
+    public void iniciarNuevaPartida(String nombreJugador) {
+        this.nombreJugadorActual = nombreJugador;
+
+        // Resetear todos los niveles
+        for(int i = 0; i < levelCompleted.length; i++) {
+            levelCompleted[i] = false;
+        }
+
+        // Crear y guardar la partida
+        saveSystem.guardarPartida(nombreJugador, 0, levelCompleted);
+        partidaActual = saveSystem.cargarPartida(nombreJugador);
+
+        selectedLevel = 0;
+        gameState = levelSelectState;
+    }
+
+    // Nueva función para cargar una partida existente
+    public void cargarPartida(String nombreJugador) {
+        SaveSystem.SaveData save = saveSystem.cargarPartida(nombreJugador);
+
+        if (save != null) {
+            this.nombreJugadorActual = nombreJugador;
+            this.partidaActual = save;
+
+            // Restaurar niveles completados
+            for(int i = 0; i < save.nivelesCompletados.length && i < levelCompleted.length; i++) {
+                levelCompleted[i] = save.nivelesCompletados[i];
+            }
+
+            selectedLevel = save.nivelActual;
+            gameState = levelSelectState;
+
+            System.out.println("Partida cargada: " + nombreJugador + " - Nivel " + (selectedLevel + 1));
+        } else {
+            System.err.println("Error: No se pudo cargar la partida de " + nombreJugador);
+        }
+    }
+
     public void completeLevel(int levelNumber) {
         if(levelNumber >= 0 && levelNumber < levelCompleted.length) {
             levelCompleted[levelNumber] = true;
             System.out.println("¡Nivel " + (levelNumber + 1) + " completado!");
+
+            // Guardar progreso automáticamente
+            if (!nombreJugadorActual.isEmpty()) {
+                // Avanzar al siguiente nivel si no es el último
+                int siguienteNivel = (levelNumber + 1 < levelCompleted.length) ? levelNumber + 1 : levelNumber;
+                saveSystem.guardarPartida(nombreJugadorActual, siguienteNivel, levelCompleted);
+                partidaActual = saveSystem.cargarPartida(nombreJugadorActual);
+                System.out.println("Progreso guardado automáticamente");
+            }
         }
     }
 
@@ -233,7 +288,7 @@ public class gamePanel extends JPanel implements Runnable {
             drawStart = System.nanoTime();
         }
 
-        if(gameState == titleState) {
+        if(gameState == titleState || gameState == loadGameState || gameState == nameInputState) {
             ui.draw(g2);
         }
         else if(gameState == levelSelectState) {
@@ -246,10 +301,8 @@ public class gamePanel extends JPanel implements Runnable {
             return;
         }
         else {
-            // Dibujar tiles
             tileM.draw(g2);
 
-            // Agregar entidades
             entityList.clear();
 
             if(player != null) {
@@ -271,7 +324,6 @@ public class gamePanel extends JPanel implements Runnable {
                 }
             }
 
-            // Ordenar por Y
             Collections.sort(entityList, new Comparator<Entity>() {
                 @Override
                 public int compare(Entity o1, Entity o2) {
@@ -279,15 +331,12 @@ public class gamePanel extends JPanel implements Runnable {
                 }
             });
 
-            // Dibujar entidades
             for (Entity e : entityList) {
                 e.draw(g2);
             }
 
-            // UI
             ui.draw(g2);
 
-            // Debug info
             if (keyH.checkDrawTime) {
                 long drawEnd = System.nanoTime();
                 long passed = drawEnd - drawStart;
@@ -328,7 +377,9 @@ public class gamePanel extends JPanel implements Runnable {
             } else {
                 stopMusic();
             }
-        } else if(gameState == titleState || gameState == levelSelectState || gameState == finalScreenState) {
+        } else if(gameState == titleState || gameState == levelSelectState ||
+                gameState == finalScreenState || gameState == loadGameState ||
+                gameState == nameInputState) {
             stopMusic();
         }
     }
