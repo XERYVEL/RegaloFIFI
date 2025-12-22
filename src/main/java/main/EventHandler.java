@@ -67,23 +67,23 @@ public class EventHandler {
     public void setupGoalZones() {
         // Zona de meta para Player 1 (color azul)
         // Posición: columna 8-9, fila 0 (arriba del mapa)
-        int p1Col = 8;
-        int p1Row = 0;
+        int p1Col = 17;
+        int p1Row = 10;
         player1GoalZone = new Rectangle(
                 p1Col * gp.tileSize,
                 p1Row * gp.tileSize,
-                gp.tileSize * 2,  // 2 tiles de ancho
+                gp.tileSize * 1,  // 2 tiles de ancho
                 gp.tileSize        // 1 tile de alto
         );
 
         // Zona de meta para Player 2 (color rojo)
         // Posición: columna 10-11, fila 0
-        int p2Col = 10;
-        int p2Row = 0;
+        int p2Col = 2;
+        int p2Row = 10;
         player2GoalZone = new Rectangle(
                 p2Col * gp.tileSize,
                 p2Row * gp.tileSize,
-                gp.tileSize * 2,  // 2 tiles de ancho
+                gp.tileSize * 1,  // 2 tiles de ancho
                 gp.tileSize        // 1 tile de alto
         );
     }
@@ -246,94 +246,5 @@ public class EventHandler {
         canTouchEvent = false;
     }
 
-    // Método para dibujar las zonas de meta (visual)
-    public void drawGoalZones(Graphics2D g2) {
-        // Verificar que las zonas estén inicializadas
-        if(player1GoalZone == null || player2GoalZone == null) {
-            System.out.println("DEBUG: Zonas no inicializadas, reinicializando...");
-            setupGoalZones();
-            return;
-        }
 
-        // DEBUG: Mostrar información de las zonas
-        if(gp.keyH.checkDrawTime) {
-            g2.setColor(Color.YELLOW);
-            g2.setFont(new Font("Arial", Font.PLAIN, 12));
-            g2.drawString("P1 Zone: " + player1GoalZone.x + "," + player1GoalZone.y, 10, 100);
-            g2.drawString("P2 Zone: " + player2GoalZone.x + "," + player2GoalZone.y, 10, 120);
-            g2.drawString("P1 Pos: " + gp.player.worldX + "," + gp.player.worldY, 10, 140);
-            g2.drawString("P2 Pos: " + gp.player2.worldX + "," + gp.player2.worldY, 10, 160);
-            g2.drawString("P1 in Goal: " + player1InGoal, 10, 180);
-            g2.drawString("P2 in Goal: " + player2InGoal, 10, 200);
-        }
-
-        // Dibujar zona de Player 1 (azul)
-        if(player1InGoal) {
-            g2.setColor(new Color(0, 150, 255, 200)); // Azul brillante si está dentro
-        } else {
-            g2.setColor(new Color(0, 100, 200, 150)); // Azul oscuro si está vacío
-        }
-        g2.fillRect(player1GoalZone.x, player1GoalZone.y,
-                player1GoalZone.width, player1GoalZone.height);
-
-        // Borde de la zona P1
-        g2.setColor(new Color(0, 200, 255));
-        g2.setStroke(new BasicStroke(4));
-        g2.drawRect(player1GoalZone.x, player1GoalZone.y,
-                player1GoalZone.width, player1GoalZone.height);
-
-        // Texto "P1"
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font("Arial", Font.BOLD, 40));
-        String p1Text = "P1";
-        int p1TextWidth = g2.getFontMetrics().stringWidth(p1Text);
-        g2.drawString(p1Text,
-                player1GoalZone.x + player1GoalZone.width/2 - p1TextWidth/2,
-                player1GoalZone.y + player1GoalZone.height/2 + 15);
-
-        // Dibujar zona de Player 2 (rojo)
-        if(player2InGoal) {
-            g2.setColor(new Color(255, 50, 50, 200)); // Rojo brillante si está dentro
-        } else {
-            g2.setColor(new Color(200, 50, 50, 150)); // Rojo oscuro si está vacío
-        }
-        g2.fillRect(player2GoalZone.x, player2GoalZone.y,
-                player2GoalZone.width, player2GoalZone.height);
-
-        // Borde de la zona P2
-        g2.setColor(new Color(255, 100, 100));
-        g2.setStroke(new BasicStroke(4));
-        g2.drawRect(player2GoalZone.x, player2GoalZone.y,
-                player2GoalZone.width, player2GoalZone.height);
-
-        // Texto "P2"
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font("Arial", Font.BOLD, 40));
-        String p2Text = "P2";
-        int p2TextWidth = g2.getFontMetrics().stringWidth(p2Text);
-        g2.drawString(p2Text,
-                player2GoalZone.x + player2GoalZone.width/2 - p2TextWidth/2,
-                player2GoalZone.y + player2GoalZone.height/2 + 15);
-
-        // Indicador de estado en la parte superior
-        g2.setFont(new Font("Arial", Font.BOLD, 24));
-
-        String statusText = "";
-        if(player1InGoal && player2InGoal) {
-            g2.setColor(new Color(100, 255, 100));
-            statusText = "¡AMBOS EN POSICIÓN! ✓✓✓";
-        } else if(player1InGoal) {
-            g2.setColor(new Color(100, 150, 255));
-            statusText = "Player 1 listo ✓ - Esperando Player 2...";
-        } else if(player2InGoal) {
-            g2.setColor(new Color(255, 100, 100));
-            statusText = "Player 2 listo ✓ - Esperando Player 1...";
-        } else {
-            g2.setColor(new Color(200, 200, 200));
-            statusText = "Lleguen ambos a sus zonas de meta (arriba)";
-        }
-
-        int statusWidth = g2.getFontMetrics().stringWidth(statusText);
-        g2.drawString(statusText, gp.screenWidth/2 - statusWidth/2, 100);
-    }
 }   

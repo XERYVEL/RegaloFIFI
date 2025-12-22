@@ -56,7 +56,7 @@ public class Player extends Entity {
         // Posiciones iniciales sobre el piso (fila 11)
         // Los jugadores aparecen en la fila 10 (justo sobre el piso)
         if(playerNumber == 1) {
-            worldX = 2 * gp.tileSize;
+            worldX = 10 * gp.tileSize;
             worldY = 10 * gp.tileSize;
         } else {
             worldX = 4 * gp.tileSize;
@@ -77,23 +77,23 @@ public class Player extends Entity {
 
     public void getPlayersImage() {
         if(playerNumber == 1) {
-            up1 = setup("/player/arriba");
-            up2 = setup("/player/arriba2");
-            down1 = setup("/player/abajo");
-            down2 = setup("/player/abajo2");
-            left1 = setup("/player/izquierda");
-            left2 = setup("/player/izquierda2");
-            right1 = setup("/player/derecha");
-            right2 = setup("/player/derecha2");
+            up1 = setup("/player/frente");
+            up2 = setup("/player/frente");
+            down1 = setup("/player/frente");
+            down2 = setup("/player/frente");
+            left1 = setup("/player/frente");
+            left2 = setup("/player/frente");
+            right1 = setup("/player/frente");
+            right2 = setup("/player/frente");
         } else {
-            up1 = setup("/player/arriba");
-            up2 = setup("/player/arriba2");
-            down1 = setup("/player/abajo");
-            down2 = setup("/player/abajo2");
-            left1 = setup("/player/izquierda");
-            left2 = setup("/player/izquierda2");
-            right1 = setup("/player/derecha");
-            right2 = setup("/player/derecha2");
+            up1 = setup("/player/frenteH");
+            up2 = setup("/player/frenteH");
+            down1 = setup("/player/frenteH");
+            down2 = setup("/player/frenteH");
+            left1 = setup("/player/izquierdaH1");
+            left2 = setup("/player/izquierdaH2");
+            right1 = setup("/player/derechaH1");
+            right2 = setup("/player/derechaH2");
         }
     }
 

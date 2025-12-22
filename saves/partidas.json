@@ -1,14 +1,14 @@
 [
     {
         "tiempoTotal": 0,
-        "fechaGuardado": "19/12/2025 21:24",
+        "fechaGuardado": "21/12/2025 23:40",
         "nombreJugador": "Xeryvel",
-        "nivelActual": 3,
+        "nivelActual": 4,
         "nivelesCompletados": [
             true,
             true,
             true,
-            false,
+            true,
             false,
             false,
             false,
@@ -30,6 +30,30 @@
         "nivelActual": 0,
         "nivelesCompletados": [
             false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ]
+    },
+    {
+        "tiempoTotal": 0,
+        "fechaGuardado": "21/12/2025 23:39",
+        "nombreJugador": "dd",
+        "nivelActual": 1,
+        "nivelesCompletados": [
+            true,
             false,
             false,
             false,
