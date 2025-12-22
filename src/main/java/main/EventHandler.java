@@ -9,7 +9,7 @@ public class EventHandler {
 
     gamePanel gp;
 
-    EventRect eventRect [][][];
+    EventRect eventRect[][][];
 
     private boolean llamo = false;
     private boolean piensa = false;
@@ -25,26 +25,27 @@ public class EventHandler {
     public boolean player1InGoal = false;
     public boolean player2InGoal = false;
 
-    public EventHandler (gamePanel gp) {
+    public EventHandler(gamePanel gp) {
         this.gp = gp;
 
-        eventRect = new EventRect[gp.maxMap][gp.maxWorldCol][gp.maxWorldRow];
+        // CORREGIDO: Aumentar el tamaño del array para 16 niveles
+        eventRect = new EventRect[16][gp.maxWorldCol][gp.maxWorldRow];
 
         int map = 0;
         int col = 0;
         int row = 0;
 
-        while(map < gp.maxMap && col < gp.maxWorldCol && row < gp.maxWorldRow){
+        while(map < 16 && col < gp.maxWorldCol && row < gp.maxWorldRow) {
 
-            eventRect [map][col][row] = new EventRect();
+            eventRect[map][col][row] = new EventRect();
 
-            eventRect [map][col][row].x = 0;
-            eventRect [map][col][row].y = 0;
-            eventRect [map][col][row].width = gp.tileSize/2;
-            eventRect [map][col][row].height = gp.tileSize/2;
+            eventRect[map][col][row].x = 0;
+            eventRect[map][col][row].y = 0;
+            eventRect[map][col][row].width = gp.tileSize / 2;
+            eventRect[map][col][row].height = gp.tileSize / 2;
 
-            eventRect [map][col][row].eventRectDefaultX = eventRect [map][col][row].x;
-            eventRect [map][col][row].eventRectDefaultY = eventRect [map][col][row].y;
+            eventRect[map][col][row].eventRectDefaultX = eventRect[map][col][row].x;
+            eventRect[map][col][row].eventRectDefaultY = eventRect[map][col][row].y;
 
             col++;
             if(col == gp.maxWorldCol) {
@@ -57,66 +58,71 @@ public class EventHandler {
                 }
             }
         }
-
-        // Las zonas se configurarán dinámicamente cuando se cargue cada nivel
     }
 
     /**
      * Configura las zonas de meta dinámicamente basándose en los tiles 6 y 7 del mapa actual
      * Este método DEBE ser llamado cada vez que se carga un nuevo nivel
+     *
+     * IMPORTANTE:
+     * - Tile 6 = Puerta AZUL = Player 1 (Mujer)
+     * - Tile 7 = Puerta ROJA = Player 2 (Hombre)
      */
     public void setupGoalZonesForCurrentMap() {
         int currentMap = gp.currentMap;
 
-        // Buscar posiciones de los tiles 6 (Player1) y 7 (Player2)
-        int p1Col = -1, p1Row = -1;
-        int p2Col = -1, p2Row = -1;
+        // Buscar posiciones de los tiles 6 y 7
+        int tile6Col = -1, tile6Row = -1;
+        int tile7Col = -1, tile7Row = -1;
 
         for (int col = 0; col < gp.maxWorldCol; col++) {
             for (int row = 0; row < gp.maxWorldRow; row++) {
                 int tileNum = gp.tileM.mapTileNum[currentMap][col][row];
 
                 if (tileNum == 6) {
-                    p1Col = col;
-                    p1Row = row;
+                    tile6Col = col;
+                    tile6Row = row;
                 }
                 else if (tileNum == 7) {
-                    p2Col = col;
-                    p2Row = row;
+                    tile7Col = col;
+                    tile7Row = row;
                 }
             }
         }
 
-        // Crear zonas de meta si se encontraron los tiles
-        if (p1Col != -1 && p1Row != -1) {
+        // CORREGIDO: Tile 6 (puertaH/AZUL) es para Player1 (Mujer)
+        if (tile6Col != -1 && tile6Row != -1) {
             player1GoalZone = new Rectangle(
-                    p1Col * gp.tileSize,
-                    p1Row * gp.tileSize,
+                    tile6Col * gp.tileSize,
+                    tile6Row * gp.tileSize,
                     gp.tileSize,
                     gp.tileSize
             );
-            System.out.println("✅ Zona P1 (tile 6) configurada en: col=" + p1Col + ", row=" + p1Row);
+            System.out.println("✅ Zona P1/AZUL (tile 6) configurada en: col=" + tile6Col + ", row=" + tile6Row);
         } else {
             player1GoalZone = null;
-            System.err.println("⚠️ No se encontró tile 6 (zona P1) en el nivel " + (currentMap + 1));
+            System.err.println("⚠️ No se encontró tile 6 (zona P1/AZUL) en el nivel " + (currentMap + 1));
         }
 
-        if (p2Col != -1 && p2Row != -1) {
+        // CORREGIDO: Tile 7 (puertaM/ROJA) es para Player2 (Hombre)
+        if (tile7Col != -1 && tile7Row != -1) {
             player2GoalZone = new Rectangle(
-                    p2Col * gp.tileSize,
-                    p2Row * gp.tileSize,
+                    tile7Col * gp.tileSize,
+                    tile7Row * gp.tileSize,
                     gp.tileSize,
                     gp.tileSize
             );
-            System.out.println("✅ Zona P2 (tile 7) configurada en: col=" + p2Col + ", row=" + p2Row);
+            System.out.println("✅ Zona P2/ROJO (tile 7) configurada en: col=" + tile7Col + ", row=" + tile7Row);
         } else {
             player2GoalZone = null;
-            System.err.println("⚠️ No se encontró tile 7 (zona P2) en el nivel " + (currentMap + 1));
+            System.err.println("⚠️ No se encontró tile 7 (zona P2/ROJO) en el nivel " + (currentMap + 1));
         }
 
         // Resetear estados
         player1InGoal = false;
         player2InGoal = false;
+
+        System.out.println("🎯 Zonas de meta configuradas para nivel " + (currentMap + 1));
     }
 
     public void checkEvent() {
@@ -128,6 +134,7 @@ public class EventHandler {
             canTouchEvent = true;
         }
 
+        // IMPORTANTE: Verificar zonas de meta en cada frame
         checkGoalZones();
 
         if (canTouchEvent) {
@@ -136,7 +143,7 @@ public class EventHandler {
             }
 
             if (hit(0, 19, 10, Direccion.Derecha)) {
-                if(!piensa){
+                if(!piensa) {
                     mensajeLugar(gp.dialogueState);
                     piensa = true;
                 }
@@ -153,7 +160,7 @@ public class EventHandler {
             return;
         }
 
-        // Crear rectángulos para Player1
+        // Crear rectángulos para Player1 (usando worldX/worldY + solidArea)
         Rectangle p1Rect = new Rectangle(
                 gp.player.worldX + gp.player.solidArea.x,
                 gp.player.worldY + gp.player.solidArea.y,
@@ -169,30 +176,30 @@ public class EventHandler {
                 gp.player2.solidArea.height
         );
 
-        // Verificar si Player 1 está en su zona
+        // Verificar si Player 1 está en su zona (tile 6/AZUL)
         boolean wasP1InGoal = player1InGoal;
         player1InGoal = player1GoalZone.intersects(p1Rect);
 
         if(player1InGoal != wasP1InGoal) {
-            System.out.println("Player 1 " + (player1InGoal ? "ENTRÓ" : "SALIÓ") + " de su zona");
+            System.out.println("🔵 Player 1 " + (player1InGoal ? "ENTRÓ" : "SALIÓ") + " de su zona AZUL");
         }
 
-        // Verificar si Player 2 está en su zona
+        // Verificar si Player 2 está en su zona (tile 7/ROJA)
         boolean wasP2InGoal = player2InGoal;
         player2InGoal = player2GoalZone.intersects(p2Rect);
 
         if(player2InGoal != wasP2InGoal) {
-            System.out.println("Player 2 " + (player2InGoal ? "ENTRÓ" : "SALIÓ") + " de su zona");
+            System.out.println("🔴 Player 2 " + (player2InGoal ? "ENTRÓ" : "SALIÓ") + " de su zona ROJA");
         }
 
         // Si AMBOS jugadores están en sus zonas, ¡VICTORIA!
         if(player1InGoal && player2InGoal && !gp.ui.gameFinished) {
-            System.out.println("¡¡¡VICTORIA ACTIVADA!!!");
+            System.out.println("🎉🎉🎉 ¡¡¡VICTORIA ACTIVADA!!! 🎉🎉🎉");
             victoria(gp.dialogueState);
         }
     }
 
-    public boolean hit(int map, int col, int row, Direccion reqDirection){
+    public boolean hit(int map, int col, int row, Direccion reqDirection) {
         boolean hit = false;
 
         if(col < 0 || col >= gp.maxWorldCol || row < 0 || row >= gp.maxWorldRow) {
@@ -212,7 +219,7 @@ public class EventHandler {
 
                 if(player.solidArea.intersects(eventRect[map][col][row]) && eventRect[map][col][row].eventDone == false) {
 
-                    if(player.direction == reqDirection || reqDirection == Direccion.Any){
+                    if(player.direction == reqDirection || reqDirection == Direccion.Any) {
                         hit = true;
 
                         previousEventX = player.worldX;
@@ -252,7 +259,7 @@ public class EventHandler {
 
         gp.reloj.actualizarTiempo();
 
-        System.out.println("¡VICTORIA! Ambos jugadores llegaron a sus zonas de meta");
+        System.out.println("✅ ¡VICTORIA! Ambos jugadores llegaron a sus zonas de meta");
     }
 
     public void teleport(int map, int col, int row) {
