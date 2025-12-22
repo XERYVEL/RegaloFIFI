@@ -58,33 +58,28 @@ public class EventHandler {
             }
         }
 
-        // Inicializar las zonas de meta (en la fila 1, parte superior del mapa)
-        // Player 1: columnas 8-9
-        // Player 2: columnas 10-11
         setupGoalZones();
     }
 
     public void setupGoalZones() {
         // Zona de meta para Player 1 (color azul)
-        // Posición: columna 8-9, fila 0 (arriba del mapa)
         int p1Col = 17;
         int p1Row = 10;
         player1GoalZone = new Rectangle(
                 p1Col * gp.tileSize,
                 p1Row * gp.tileSize,
-                gp.tileSize * 1,  // 2 tiles de ancho
-                gp.tileSize        // 1 tile de alto
+                gp.tileSize * 1,
+                gp.tileSize
         );
 
         // Zona de meta para Player 2 (color rojo)
-        // Posición: columna 10-11, fila 0
         int p2Col = 2;
         int p2Row = 10;
         player2GoalZone = new Rectangle(
                 p2Col * gp.tileSize,
                 p2Row * gp.tileSize,
-                gp.tileSize * 1,  // 2 tiles de ancho
-                gp.tileSize        // 1 tile de alto
+                gp.tileSize * 1,
+                gp.tileSize
         );
     }
 
@@ -97,16 +92,13 @@ public class EventHandler {
             canTouchEvent = true;
         }
 
-        // Verificar si los jugadores están en sus zonas de meta
         checkGoalZones();
 
         if (canTouchEvent) {
-            // Evento de interacción en el centro del mapa
             if (hit(0, 10, 5, Direccion.Arriba)) {
                 interactuarEntorno(0, 10, 5, gp.dialogueState);
             }
 
-            // Evento al llegar al borde derecho
             if (hit(0, 19, 10, Direccion.Derecha)) {
                 if(!piensa){
                     mensajeLugar(gp.dialogueState);
@@ -121,13 +113,12 @@ public class EventHandler {
             return;
         }
 
-        // Verificar que las zonas estén inicializadas
         if(player1GoalZone == null || player2GoalZone == null) {
             setupGoalZones();
             return;
         }
 
-        // Crear rectángulos para las áreas sólidas de los jugadores
+        // Crear rectángulos para Player1
         Rectangle p1Rect = new Rectangle(
                 gp.player.worldX + gp.player.solidArea.x,
                 gp.player.worldY + gp.player.solidArea.y,
@@ -135,6 +126,7 @@ public class EventHandler {
                 gp.player.solidArea.height
         );
 
+        // Crear rectángulos para Player2
         Rectangle p2Rect = new Rectangle(
                 gp.player2.worldX + gp.player2.solidArea.x,
                 gp.player2.worldY + gp.player2.solidArea.y,
@@ -146,7 +138,6 @@ public class EventHandler {
         boolean wasP1InGoal = player1InGoal;
         player1InGoal = player1GoalZone.intersects(p1Rect);
 
-        // Debug cuando cambia el estado
         if(player1InGoal != wasP1InGoal) {
             System.out.println("Player 1 " + (player1InGoal ? "ENTRÓ" : "SALIÓ") + " de su zona");
         }
@@ -155,7 +146,6 @@ public class EventHandler {
         boolean wasP2InGoal = player2InGoal;
         player2InGoal = player2GoalZone.intersects(p2Rect);
 
-        // Debug cuando cambia el estado
         if(player2InGoal != wasP2InGoal) {
             System.out.println("Player 2 " + (player2InGoal ? "ENTRÓ" : "SALIÓ") + " de su zona");
         }
@@ -170,16 +160,15 @@ public class EventHandler {
     public boolean hit(int map, int col, int row, Direccion reqDirection){
         boolean hit = false;
 
-        // Validar que las coordenadas estén dentro del rango
         if(col < 0 || col >= gp.maxWorldCol || row < 0 || row >= gp.maxWorldRow) {
             return false;
         }
 
         if (map == gp.currentMap) {
-            // Verificar ambos jugadores
-            Player[] players = {gp.player, gp.player2};
+            // Verificar ambos jugadores usando las clases específicas
+            Entity[] players = {gp.player, gp.player2};
 
-            for(Player player : players) {
+            for(Entity player : players) {
                 if(player == null) continue;
 
                 player.solidArea.x = player.worldX + player.solidArea.x;
@@ -223,11 +212,10 @@ public class EventHandler {
     }
 
     public void victoria(int gameState) {
-        gp.playSE(2); // Sonido de victoria
+        gp.playSE(2);
         gp.ui.gameFinished = true;
         canTouchEvent = false;
 
-        // Detener el reloj
         gp.reloj.actualizarTiempo();
 
         System.out.println("¡VICTORIA! Ambos jugadores llegaron a sus zonas de meta");
@@ -245,6 +233,4 @@ public class EventHandler {
         previousEventY = gp.player.worldY;
         canTouchEvent = false;
     }
-
-
-}   
+}
