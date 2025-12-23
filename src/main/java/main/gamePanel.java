@@ -180,7 +180,12 @@ public class gamePanel extends JPanel implements Runnable {
         partidaActual = saveSystem.cargarPartida(nombreJugador);
 
         selectedLevel = 0;
+        currentMap = 0;  // ⭐ AGREGADO: Asegurar que empiece en mapa 0
+
         gameState = levelSelectState;
+
+        System.out.println("✅ Nueva partida iniciada: " + nombreJugador);
+        System.out.println("   selectedLevel=" + selectedLevel + ", currentMap=" + currentMap);
     }
 
     public void cargarPartida(String nombreJugador) {
@@ -195,6 +200,8 @@ public class gamePanel extends JPanel implements Runnable {
             }
 
             selectedLevel = save.nivelActual;
+            currentMap = save.nivelActual;  // ⭐ AGREGADO: Sincronizar currentMap
+
             gameState = levelSelectState;
 
             System.out.println("Partida cargada: " + nombreJugador + " - Nivel " + (selectedLevel + 1));
@@ -208,10 +215,14 @@ public class gamePanel extends JPanel implements Runnable {
      * @param levelIndex El índice del nivel (0-15)
      */
     public void loadLevel(int levelIndex) {
+        System.out.println("🔍 DEBUG: loadLevel llamado con levelIndex=" + levelIndex +
+                ", currentMap actual=" + currentMap);
+
         // Cambiar el currentMap al nivel seleccionado
         currentMap = levelIndex;
 
         System.out.println("🎮 Cargando nivel " + (levelIndex + 1));
+        System.out.println("🔍 DEBUG: currentMap ahora es=" + currentMap);
 
         // Configurar las zonas de meta para este nivel
         if(eHandler != null) {
@@ -220,24 +231,28 @@ public class gamePanel extends JPanel implements Runnable {
             System.err.println("❌ EventHandler es null!");
         }
 
-        // ⭐ NUEVO: Configurar spawns usando AssetSetter
+        // ⭐ Configurar spawns usando AssetSetter
         if(aSetter != null) {
             aSetter.setPlayerSpawns(levelIndex);
         } else {
             System.err.println("❌ AssetSetter es null!");
-            // Fallback a posiciones por defecto
-            if(player != null) {
-                player.setDefaultValues();
-            }
-            if(player2 != null) {
-                player2.setDefaultValues();
-            }
         }
 
         // Resetear estados de UI
         if(ui != null) {
             ui.gameFinished = false;
             ui.gameOver = false;
+        }
+
+        // ⭐ VERIFICACIÓN FINAL
+        System.out.println("🔍 DEBUG: Después de setPlayerSpawns:");
+        if(player != null) {
+            System.out.println("  P1 worldX=" + player.worldX + " (" + (player.worldX/tileSize) + " tiles)");
+            System.out.println("  P1 worldY=" + player.worldY + " (" + (player.worldY/tileSize) + " tiles)");
+        }
+        if(player2 != null) {
+            System.out.println("  P2 worldX=" + player2.worldX + " (" + (player2.worldX/tileSize) + " tiles)");
+            System.out.println("  P2 worldY=" + player2.worldY + " (" + (player2.worldY/tileSize) + " tiles)");
         }
     }
 

@@ -39,7 +39,7 @@ public class Reloj {
     }
 
     public void derrota() {
-        if(min >= 12){
+        if(min >= 1){
             gp.gameState = gp.gameOverState;
             gp.playSE(3);
         }

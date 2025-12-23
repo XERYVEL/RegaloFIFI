@@ -32,77 +32,77 @@ public class AssetSetter {
         switch(levelIndex) {
             case 0: // NIVEL 1
                 p1Col = 4; p1Row = 10;
-                p2Col = 16; p2Row = 10;
+                p2Col = 15; p2Row = 10;
                 break;
 
             case 1: // NIVEL 2
                 p1Col = 5; p1Row = 10;
-                p2Col = 7; p2Row = 10;
+                p2Col = 13; p2Row = 10;
                 break;
 
             case 2: // NIVEL 3
                 p1Col = 5; p1Row = 10;
-                p2Col = 7; p2Row = 10;
+                p2Col = 15; p2Row = 10;
                 break;
 
             case 3: // NIVEL 4
-                p1Col = 7; p1Row = 10;
-                p2Col = 5; p2Row = 10;
+                p1Col = 1; p1Row = 10;
+                p2Col = 16; p2Row = 10;
                 break;
 
             case 4: // NIVEL 5
-                p1Col = 5; p1Row = 10;
+                p1Col = 12; p1Row = 10;
                 p2Col = 7; p2Row = 10;
                 break;
 
             case 5: // NIVEL 6
-                p1Col = 5; p1Row = 10;
+                p1Col = 12; p1Row = 10;
                 p2Col = 7; p2Row = 10;
                 break;
 
             case 6: // NIVEL 7
-                p1Col = 5; p1Row = 10;
-                p2Col = 7; p2Row = 10;
+                p1Col = 1; p1Row = 10;
+                p2Col = 18; p2Row = 10;
                 break;
 
             case 7: // NIVEL 8
-                p1Col = 5; p1Row = 10;
-                p2Col = 7; p2Row = 10;
+                p1Col = 1; p1Row = 10;
+                p2Col = 18; p2Row = 10;
                 break;
 
             case 8: // NIVEL 9
                 p1Col = 5; p1Row = 10;
-                p2Col = 7; p2Row = 10;
-                break;
-
-            case 9: // NIVEL 10
-                p1Col = 5; p1Row = 4;
-                p2Col = 16; p2Row = 4;
-                break;
-
-            case 10: // NIVEL 11
-                p1Col = 2; p1Row = 3;
-                p2Col = 18; p2Row = 3;
-                break;
-
-            case 11: // NIVEL 12
-                p1Col = 12; p1Row = 10;
                 p2Col = 14; p2Row = 10;
                 break;
 
+            case 9: // NIVEL 10
+                p1Col = 4; p1Row = 3;
+                p2Col = 15; p2Row = 3;
+                break;
+
+            case 10: // NIVEL 11
+                p1Col = 1; p1Row = 4;
+                p2Col = 18; p2Row = 4;
+                break;
+
+            case 11: // NIVEL 12
+                p1Col = 11; p1Row = 10;
+                p2Col = 13; p2Row = 10;
+                break;
+
             case 12: // NIVEL 13
-                p1Col = 2; p1Row = 10;
-                p2Col = 19; p2Row = 10;
+                p1Col = 1; p1Row = 10;
+                p2Col = 18; p2Row = 10;
                 break;
 
             case 13: // NIVEL 14
-                p1Col = 2; p1Row = 10;
-                p2Col = 19; p2Row = 10;
+                p1Col = 18; p1Row = 10;
+                p2Col = 1; p2Row = 10;
                 break;
 
             case 14: // NIVEL 15
-                p1Col = 2; p1Row = 10;
-                p2Col = 19; p2Row = 10;
+                p1Col = 1; p1Row = 10;
+                p2Col = 18; p2Row = 10;
                 break;
 
             case 15: // NIVEL 16

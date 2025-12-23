@@ -48,8 +48,6 @@ public class Player2 extends Entity {
 
     public void setDefaultValues() {
         // Posición inicial Player 2
-        worldX = 11 * gp.tileSize;
-        worldY = 10 * gp.tileSize;
         speed = 4;
         direction = Direccion.Derecha;
 

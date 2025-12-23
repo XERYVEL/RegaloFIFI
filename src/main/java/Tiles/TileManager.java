@@ -21,7 +21,7 @@ public class TileManager {
         this.gp = gp;
         tile = new Tile[100];
 
-        // CORREGIDO: Aumentar el tamaño del array para soportar 16 niveles
+        // Array para 16 niveles: [nivel][columna][fila]
         mapTileNum = new int[16][gp.maxWorldCol][gp.maxWorldRow];
 
         getTileImage();
@@ -43,12 +43,30 @@ public class TileManager {
     }
 
     public void loadAllLevels() {
+        System.out.println("📚 ========== CARGANDO TODOS LOS MAPAS ==========");
+
         // Cargar los 16 niveles
         for (int i = 1; i <= 16; i++) {
             String levelFile = "/Mapas/LEVEL" + i + ".txt";
             int mapIndex = i - 1; // El índice del array empieza en 0
+
+            System.out.println("📂 Intentando cargar: " + levelFile + " en índice " + mapIndex);
             loadMap(levelFile, mapIndex);
         }
+
+        System.out.println("📚 ========== CARGA COMPLETA ==========");
+
+        // ⭐ VERIFICACIÓN: Imprimir primeras filas de cada nivel para debugging
+        System.out.println("\n🔍 VERIFICACIÓN DE MAPAS CARGADOS:");
+        for(int map = 0; map < 3; map++) {
+            System.out.println("   Mapa " + map + " (LEVEL" + (map+1) + ") - Primera fila:");
+            System.out.print("   ");
+            for(int col = 0; col < gp.maxWorldCol; col++) {
+                System.out.print(mapTileNum[map][col][0] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
     }
 
     public void setup(int index, String imageName, boolean collision) {
@@ -140,7 +158,7 @@ public class TileManager {
 
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
-            System.out.println("📂 Cargando mapa: " + filePath);
+            System.out.println("📂 Cargando mapa: " + filePath + " en índice " + map);
 
             int row = 0;
 
@@ -155,7 +173,15 @@ public class TileManager {
 
                 for (int col = 0; col < gp.maxWorldCol && col < numbers.length; col++) {
                     try {
-                        mapTileNum[map][col][row] = Integer.parseInt(numbers[col].trim());
+                        int tileValue = Integer.parseInt(numbers[col].trim());
+                        mapTileNum[map][col][row] = tileValue;
+
+                        // ⭐ DEBUG: Mostrar ubicación de puertas
+                        if(tileValue == 6 || tileValue == 7) {
+                            String puertaTipo = (tileValue == 6) ? "AZUL/P1" : "ROJA/P2";
+                            System.out.println("   🚪 Encontrada puerta " + puertaTipo +
+                                    " en mapa " + map + ", col=" + col + ", row=" + row);
+                        }
                     } catch (NumberFormatException e) {
                         mapTileNum[map][col][row] = 0;
                     }
@@ -166,10 +192,11 @@ public class TileManager {
             br.close();
             is.close();
 
-            System.out.println("✅ Mapa " + (map + 1) + " cargado exitosamente");
+            System.out.println("✅ Mapa " + (map + 1) + " cargado exitosamente en índice " + map);
 
         } catch (Exception e) {
             System.err.println("❌ Error cargando mapa " + filePath + ": " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -177,9 +204,18 @@ public class TileManager {
         int worldCol = 0;
         int worldRow = 0;
 
+        // ⭐ IMPORTANTE: Usar gp.currentMap para dibujar el mapa correcto
+        int currentMapIndex = gp.currentMap;
+
+        // Validación de seguridad
+        if(currentMapIndex < 0 || currentMapIndex >= mapTileNum.length) {
+            System.err.println("❌ ERROR: currentMap fuera de rango: " + currentMapIndex);
+            currentMapIndex = 0;
+        }
+
         while (worldCol < gp.maxScreenCol && worldRow < gp.maxScreenRow) {
 
-            int tileNum = mapTileNum[gp.currentMap][worldCol][worldRow];
+            int tileNum = mapTileNum[currentMapIndex][worldCol][worldRow];
 
             int screenX = worldCol * gp.tileSize;
             int screenY = worldRow * gp.tileSize;
