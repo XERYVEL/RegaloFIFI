@@ -12,11 +12,15 @@ public class CollisionChecker {
     }
 
     public void checkTile(Entity entity) {
+        // Expandir hitbox horizontalmente SOLO para detección de suelo
+        int groundDetectionMargin = 6; // píxeles extra a cada lado para detectar suelo
+
         int entityLeftWorldX = entity.worldX + entity.solidArea.x;
         int entityRightWorldX = entity.worldX + entity.solidArea.x + entity.solidArea.width;
         int entityTopWorldY = entity.worldY + entity.solidArea.y;
         int entityBottomWorldY = entity.worldY + entity.solidArea.y + entity.solidArea.height;
 
+        // Para detección lateral (izquierda/derecha), usar hitbox normal
         int entityLeftCol = entityLeftWorldX / gp.tileSize;
         int entityRightCol = entityRightWorldX / gp.tileSize;
         int entityTopRow = entityTopWorldY / gp.tileSize;
@@ -34,10 +38,26 @@ public class CollisionChecker {
                 }
                 break;
             case Abajo:
+                // MEJORADO: Usar hitbox expandida para detección de suelo
+                int groundLeftWorldX = entity.worldX + entity.solidArea.x - groundDetectionMargin;
+                int groundRightWorldX = entity.worldX + entity.solidArea.x + entity.solidArea.width + groundDetectionMargin;
+                int groundLeftCol = groundLeftWorldX / gp.tileSize;
+                int groundRightCol = groundRightWorldX / gp.tileSize;
+
+                // Verificar también el centro para mejor detección
+                int groundCenterWorldX = entity.worldX + entity.solidArea.x + entity.solidArea.width / 2;
+                int groundCenterCol = groundCenterWorldX / gp.tileSize;
+
                 entityBottomRow = (entityBottomWorldY + entity.speed) / gp.tileSize;
-                tileNum1 = gp.tileM.mapTileNum[gp.currentMap][entityLeftCol][entityBottomRow];
-                tileNum2 = gp.tileM.mapTileNum[gp.currentMap][entityRightCol][entityBottomRow];
-                if (gp.tileM.tile[tileNum1].collision == true || gp.tileM.tile[tileNum2].collision == true) {
+
+                // Verificar izquierda, centro y derecha
+                tileNum1 = gp.tileM.mapTileNum[gp.currentMap][groundLeftCol][entityBottomRow];
+                tileNum2 = gp.tileM.mapTileNum[gp.currentMap][groundRightCol][entityBottomRow];
+                int tileNum3 = gp.tileM.mapTileNum[gp.currentMap][groundCenterCol][entityBottomRow];
+
+                if (gp.tileM.tile[tileNum1].collision == true ||
+                        gp.tileM.tile[tileNum2].collision == true ||
+                        gp.tileM.tile[tileNum3].collision == true) {
                     entity.collisionOn = true;
                 }
                 break;

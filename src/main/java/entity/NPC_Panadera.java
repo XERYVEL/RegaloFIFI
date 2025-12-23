@@ -44,7 +44,7 @@ public class NPC_Panadera extends Entity {
             dialogues[5] = ". .";
             dialogues[6] = ". . .";
             dialogues[7] = "Me equivoque, solo nos queda \n Pan de Ajo... \n Disfrutalo!!!";
-            gp.player.removeItem("vale por comida");
+            //gp.player.removeItem("vale por comida");
             if(tienePan == false){
                 gp.player.inventory.add(new OBJ_panDeAjo(gp));
                 tienePan=true;
