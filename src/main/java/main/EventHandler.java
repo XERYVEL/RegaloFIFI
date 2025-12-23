@@ -68,12 +68,19 @@ public class EventHandler {
      * - Tile 6 = Puerta AZUL = Player 1 (Mujer)
      * - Tile 7 = Puerta ROJA = Player 2 (Hombre)
      */
+
     public void setupGoalZonesForCurrentMap() {
         int currentMap = gp.currentMap;
+
+        System.out.println("\n🎯 ========== CONFIGURANDO ZONAS DE META ==========");
+        System.out.println("   currentMap = " + currentMap + " (LEVEL" + (currentMap + 1) + ".txt)");
 
         // Buscar posiciones de los tiles 6 y 7
         int tile6Col = -1, tile6Row = -1;
         int tile7Col = -1, tile7Row = -1;
+
+        // ⭐ DEBUGGING: Ver qué mapa estamos leyendo
+        System.out.println("   Buscando puertas en mapTileNum[" + currentMap + "][col][row]...");
 
         for (int col = 0; col < gp.maxWorldCol; col++) {
             for (int row = 0; row < gp.maxWorldRow; row++) {
@@ -82,10 +89,12 @@ public class EventHandler {
                 if (tileNum == 6) {
                     tile6Col = col;
                     tile6Row = row;
+                    System.out.println("   ✅ Encontrado tile 6 (AZUL/P1) en col=" + col + ", row=" + row);
                 }
                 else if (tileNum == 7) {
                     tile7Col = col;
                     tile7Row = row;
+                    System.out.println("   ✅ Encontrado tile 7 (ROJA/P2) en col=" + col + ", row=" + row);
                 }
             }
         }
@@ -123,6 +132,7 @@ public class EventHandler {
         player2InGoal = false;
 
         System.out.println("🎯 Zonas de meta configuradas para nivel " + (currentMap + 1));
+        System.out.println("🎯 ===============================================\n");
     }
 
     public void checkEvent() {
