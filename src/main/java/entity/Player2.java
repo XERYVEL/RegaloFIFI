@@ -98,47 +98,69 @@ public class Player2 extends Entity {
     }
 
     private void moveHorizontal(int speedX) {
-        int oldX = worldX;
         worldX += speedX;
 
-        // Verificar colisión manual solo en dirección horizontal
-        int entityLeftWorldX = worldX + solidArea.x;
-        int entityRightWorldX = worldX + solidArea.x + solidArea.width;
-        int entityTopWorldY = worldY + solidArea.y;
-        int entityBottomWorldY = worldY + solidArea.y + solidArea.height;
+        // Verificar si estamos colisionando con una pared
+        boolean collision = checkWallCollision();
 
-        int entityLeftCol = entityLeftWorldX / gp.tileSize;
-        int entityRightCol = entityRightWorldX / gp.tileSize;
-        int entityTopRow = entityTopWorldY / gp.tileSize;
-        int entityBottomRow = entityBottomWorldY / gp.tileSize;
-
-        boolean hitWall = false;
-
-        // Verificar colisión lateral (izquierda o derecha)
-        if(speedX < 0) {
-            // Moviendo a la izquierda
-            int tile1 = gp.tileM.mapTileNum[gp.currentMap][entityLeftCol][entityTopRow];
-            int tile2 = gp.tileM.mapTileNum[gp.currentMap][entityLeftCol][entityBottomRow];
-            if(gp.tileM.tile[tile1].collision || gp.tileM.tile[tile2].collision) {
-                hitWall = true;
-            }
-        } else if(speedX > 0) {
-            // Moviendo a la derecha
-            int tile1 = gp.tileM.mapTileNum[gp.currentMap][entityRightCol][entityTopRow];
-            int tile2 = gp.tileM.mapTileNum[gp.currentMap][entityRightCol][entityBottomRow];
-            if(gp.tileM.tile[tile1].collision || gp.tileM.tile[tile2].collision) {
-                hitWall = true;
+        if(collision) {
+            // Empujar al jugador fuera de la pared, 1 píxel a la vez
+            if(speedX < 0) {
+                // Estábamos moviendo a la izquierda, empujar a la derecha
+                while(checkWallCollision() && worldX < gp.screenWidth) {
+                    worldX++;
+                }
+            } else if(speedX > 0) {
+                // Estábamos moviendo a la derecha, empujar a la izquierda
+                while(checkWallCollision() && worldX > 0) {
+                    worldX--;
+                }
             }
         }
 
         // Verificar colisión con otro jugador
         if(checkPlayerCollision(speedX, 0)) {
-            hitWall = true;
+            worldX -= speedX; // Revertir movimiento
+        }
+    }
+
+    private boolean checkWallCollision() {
+        // Calcular bounds del jugador
+        int entityLeftWorldX = worldX + solidArea.x;
+        int entityRightWorldX = worldX + solidArea.x + solidArea.width;
+        int entityTopWorldY = worldY + solidArea.y;
+
+        // Solo verificar hasta el 75% de la altura para evitar detectar el suelo
+        int entityCheckBottomY = worldY + solidArea.y + (int)(solidArea.height * 0.75);
+
+        int entityLeftCol = entityLeftWorldX / gp.tileSize;
+        int entityRightCol = entityRightWorldX / gp.tileSize;
+        int entityTopRow = entityTopWorldY / gp.tileSize;
+        int entityCheckBottomRow = entityCheckBottomY / gp.tileSize;
+
+        // Verificar columna izquierda
+        if(entityLeftCol >= 0 && entityLeftCol < gp.maxWorldCol) {
+            for(int row = entityTopRow; row <= entityCheckBottomRow; row++) {
+                if(row >= 0 && row < gp.maxWorldRow) {
+                    if(gp.tileM.tile[gp.tileM.mapTileNum[gp.currentMap][entityLeftCol][row]].collision) {
+                        return true;
+                    }
+                }
+            }
         }
 
-        if(hitWall) {
-            worldX = oldX;
+        // Verificar columna derecha
+        if(entityRightCol >= 0 && entityRightCol < gp.maxWorldCol) {
+            for(int row = entityTopRow; row <= entityCheckBottomRow; row++) {
+                if(row >= 0 && row < gp.maxWorldRow) {
+                    if(gp.tileM.tile[gp.tileM.mapTileNum[gp.currentMap][entityRightCol][row]].collision) {
+                        return true;
+                    }
+                }
+            }
         }
+
+        return false;
     }
 
     private void applyGravity() {
@@ -202,22 +224,18 @@ public class Player2 extends Entity {
                 groundDetected = true;
             }
 
-            if (groundDetected) {
-
-                // SOLO ajustar Y si estaba cayendo y NO estaba grounded
-                if (!isGrounded) {
-                    int tileTopY = bottomRow * gp.tileSize;
-                    worldY = tileTopY - solidArea.y - solidArea.height;
-                }
+            if(groundDetected) {
+                // Ajustar posición para quedar exactamente sobre el tile
+                int tileTopY = bottomRow * gp.tileSize;
+                worldY = tileTopY - solidArea.y - solidArea.height;
 
                 velocityY = 0;
                 isGrounded = true;
                 canJump = true;
-
+                // NO setear collisionOn = true aquí, solo afecta movimiento vertical
             } else {
                 isGrounded = false;
             }
-
 
         } else if(velocityY < 0) {
             // Subiendo - verificar colisión con techo
