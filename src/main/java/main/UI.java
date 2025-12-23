@@ -466,7 +466,7 @@ public class UI {
 
         String text = "¡FELICITACIONES!";
         int x = getXforCenteredText(text);
-        int y = gp.tileSize * 2;
+        int y = gp.tileSize;
 
         g2.setColor(new Color(100, 50, 0));
         g2.drawString(text, x + 3, y + 3);
@@ -474,38 +474,69 @@ public class UI {
         g2.setColor(new Color(255, 215, 0));
         g2.drawString(text, x, y);
 
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 36F));
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F));
         g2.setColor(new Color(255, 255, 255));
         text = "Completaste todos los niveles";
         x = getXforCenteredText(text);
-        y += gp.tileSize + 20;
+        y += 80;
         g2.drawString(text, x, y);
 
-        y += gp.tileSize;
-        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 100F));
+        // Mensaje principal de amor
+        y += 60;
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 32F));
+        g2.setColor(new Color(255, 100, 150));
 
-        String[] lines = {"Feliz", "Navidad", "Fifi"};
-        int lineHeight = 120;
+        String[] mensajeLineas = {
+                "Amor,",
+                "",
+                "Solo quería decirte que te quiero un montón.",
+                "Me encanta cómo la pasamos juntos, cómo todo",
+                "se vuelve más lindo y más divertido cuando estás cerca.",
+                "",
+                "Amo tu forma de ser y, sí, no puedo evitar decirlo:",
+                "me encanta cómo te sonrojás cuando te ponés nerviosa,",
+                "es demasiado tierna.",
+                "",
+                "Ojalá que este regalito te guste.",
+                "",
+                "Gracias por ser vos y por hacer mis días",
+                "mucho mejores.",
+                "",
+                "Te quiero mucho",
+                "Julian"
+        };
 
-        for(int i = 0; i < lines.length; i++) {
-            String line = lines[i];
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 22F));
+        int lineHeight = 30;
 
-            g2.setColor(new Color(255, 100, 255, 150));
-            int lineWidth = (int)g2.getFontMetrics().getStringBounds(line, g2).getWidth();
+        for(int i = 0; i < mensajeLineas.length; i++) {
+            String linea = mensajeLineas[i];
+
+            if(linea.equals("Amor,")) {
+                g2.setFont(g2.getFont().deriveFont(Font.BOLD, 28F));
+                g2.setColor(new Color(255, 150, 200));
+            } else if(linea.equals("Te quiero ❤️")) {
+                g2.setFont(g2.getFont().deriveFont(Font.BOLD, 26F));
+                g2.setColor(new Color(255, 100, 150));
+            } else if(linea.isEmpty()) {
+                y += lineHeight / 2;
+                continue;
+            } else {
+                g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 20F));
+                g2.setColor(new Color(255, 255, 255));
+            }
+
+            int lineWidth = (int)g2.getFontMetrics().getStringBounds(linea, g2).getWidth();
             x = gp.screenWidth / 2 - lineWidth / 2;
-            g2.drawString(line, x + 4, y + 4);
-
-            g2.setColor(new Color(255, 50, 255, 255));
-            g2.drawString(line, x, y);
-
+            g2.drawString(linea, x, y);
             y += lineHeight;
         }
 
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 24F));
-        g2.setColor(new Color(200, 200, 200));
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 18F));
+        g2.setColor(new Color(150, 150, 150));
         text = "Presiona ESC o ENTER para volver";
         x = getXforCenteredText(text);
-        g2.drawString(text, x, gp.screenHeight - gp.tileSize);
+        g2.drawString(text, x, gp.screenHeight - 30);
     }
 
     private void drawHiddenMessage() {

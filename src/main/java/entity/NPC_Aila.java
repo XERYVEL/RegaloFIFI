@@ -2,7 +2,7 @@ package entity;
 
 import main.gamePanel;
 import varios.Direccion;
-import varios.Pelea;
+
 
 public class NPC_Aila extends Entity {
     public boolean dialogoTerminado = false;
@@ -67,7 +67,7 @@ public class NPC_Aila extends Entity {
     }
 
     private void activarPelea() {
-        Pelea pelea = new Pelea(gp);
+        //Pelea pelea = new Pelea(gp);
 
         NPC_Panadera panadera = null;
         for (int i = 0; i < gp.maxWorldCol; i++) {
@@ -81,7 +81,7 @@ public class NPC_Aila extends Entity {
         }
 
         if (panadera != null) {
-            pelea.iniciarCombate(panadera);
+            //pelea.iniciarCombate(panadera);
         } else {
             System.out.println("No se encontró la Panadera en el mapa");
         }
