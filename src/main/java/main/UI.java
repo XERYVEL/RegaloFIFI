@@ -272,6 +272,10 @@ public class UI {
 
             g2.drawString("Nivel " + (save.nivelActual + 1) + " | Completados: " + completados + "/16", textX, textY);
 
+            textY += 30;
+            g2.setColor(new Color(150, 200, 255));
+            g2.drawString("💎 Azules: " + save.gemasAzulesRecolectadas + "/16 | 💎 Rojas: " + save.gemasRojasRecolectadas + "/16", textX, textY);
+
             textY += 25;
             g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 18F));
             g2.setColor(new Color(150, 150, 150));
@@ -298,26 +302,35 @@ public class UI {
         g2.setColor(new Color(0, 0, 0));
         g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
-        // Mostrar nombre del jugador arriba
+        // Mostrar nombre del jugador y gemas recolectadas arriba
         if (!gp.nombreJugadorActual.isEmpty()) {
-            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 28F));
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 24F));
             g2.setColor(new Color(100, 255, 100));
             String playerName = "Jugador: " + gp.nombreJugadorActual;
             int nameX = gp.tileSize / 2;
-            g2.drawString(playerName, nameX, 35);
+            g2.drawString(playerName, nameX, 30);
+
+            // ⭐ NUEVO: Mostrar contador de gemas
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 20F));
+
+            g2.setColor(new Color(100, 150, 255));
+            g2.drawString("💎 P1: " + gp.gemasAzulesRecolectadas + "/16", nameX, 55);
+
+            g2.setColor(new Color(255, 100, 100));
+            g2.drawString("💎 P2: " + gp.gemasRojasRecolectadas + "/16", nameX + 150, 55);
         }
 
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F));
         g2.setColor(Color.white);
         String text = "Selecciona un Nivel";
         int x = getXforCenteredText(text);
-        g2.drawString(text, x, gp.tileSize);
+        g2.drawString(text, x, gp.tileSize + 20);
 
         drawHiddenMessage();
 
         int levelSize = gp.tileSize + 16;
         int gridStartX = (gp.screenWidth - (levelSize * 4 + 30)) / 2;
-        int gridStartY = gp.tileSize * 2;
+        int gridStartY = gp.tileSize * 2 + 20;
 
         for(int row = 0; row < 4; row++) {
             for(int col = 0; col < 4; col++) {
@@ -328,6 +341,10 @@ public class UI {
                 boolean completed = gp.levelCompleted[levelIndex];
                 boolean selected = (levelIndex == gp.selectedLevel);
                 boolean unlocked = (levelIndex == 0) || gp.levelCompleted[levelIndex - 1];
+
+                // ⭐ NUEVO: Verificar si las gemas fueron recolectadas en este nivel
+                boolean hasBlueGem = gp.gemasAzulesPorNivel[levelIndex];
+                boolean hasRedGem = gp.gemasRojasPorNivel[levelIndex];
 
                 if(completed) {
                     g2.setColor(new Color(50, 200, 50, 20));
@@ -389,6 +406,21 @@ public class UI {
                 String levelNum = String.valueOf(levelIndex + 1);
                 int numWidth = (int)g2.getFontMetrics().getStringBounds(levelNum, g2).getWidth();
                 g2.drawString(levelNum, levelX + levelSize/2 - numWidth/2, levelY + 30);
+
+                // ⭐ NUEVO: Mostrar íconos de gemas recolectadas
+                g2.setFont(g2.getFont().deriveFont(Font.BOLD, 16F));
+
+                // Gema azul (abajo izquierda)
+                if(hasBlueGem) {
+                    g2.setColor(new Color(100, 150, 255));
+                    g2.drawString("💎", levelX + 5, levelY + levelSize - 5);
+                }
+
+                // Gema roja (abajo derecha)
+                if(hasRedGem) {
+                    g2.setColor(new Color(255, 100, 100));
+                    g2.drawString("💎", levelX + levelSize - 20, levelY + levelSize - 5);
+                }
             }
         }
 
@@ -397,7 +429,8 @@ public class UI {
         int finalButtonHeight = levelSize;
         int finalButtonX = gp.screenWidth / 2 - finalButtonWidth / 2;
 
-        boolean allCompleted = gp.allLevelsCompleted();
+        // ⭐ MODIFICADO: Ahora requiere TODAS las gemas además de todos los niveles
+        boolean allCompleted = gp.allLevelsCompleted() && gp.allGemsCollected();
 
         if(allCompleted) {
             g2.setColor(new Color(255, 215, 0, 200));
@@ -450,11 +483,17 @@ public class UI {
         for(boolean b : gp.levelCompleted) {
             if(b) completedCount++;
         }
-        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 24F));
+
+        // ⭐ MODIFICADO: Mostrar también progreso de gemas
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 22F));
         g2.setColor(new Color(255, 215, 0));
-        text = "Completados: " + completedCount + "/16";
+        text = "Niveles: " + completedCount + "/16";
         x = getXforCenteredText(text);
-        g2.drawString(text, x, gp.screenHeight - gp.tileSize - 20);
+        g2.drawString(text, x, gp.screenHeight - gp.tileSize - 40);
+
+        text = "Gemas: " + (gp.gemasAzulesRecolectadas + gp.gemasRojasRecolectadas) + "/32";
+        x = getXforCenteredText(text);
+        g2.drawString(text, x, gp.screenHeight - gp.tileSize - 15);
     }
 
     public void drawFinalScreen() {
@@ -759,14 +798,27 @@ public class UI {
         g2.drawRoundRect(x + 5, y + 5, width - 10, height - 10, 25, 25);
     }
 
+
     public void drawPlayScreen(String tiempoTexto) {
         g2.setFont(arial_40);
         g2.setColor(Color.WHITE);
         g2.drawString("Nivel " + (gp.selectedLevel + 1), gp.tileSize / 2, 30);
         g2.drawString("Time: " + tiempoTexto, gp.screenWidth - 250, 30);
 
+        //  NUEVO: Mostrar contador de gemas
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 18F));
+
+        // Gemas Azules (Player 1)
+        g2.setColor(new Color(100, 150, 255));
+        g2.drawString("💎 P1: " + gp.gemasAzulesRecolectadas + "/16", gp.tileSize / 2, 80);
+
+        // Gemas Rojas (Player 2)
+        g2.setColor(new Color(255, 100, 100));
+        g2.drawString("💎 P2: " + gp.gemasRojasRecolectadas + "/16", gp.tileSize / 2, 105);
+
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 16F));
-        g2.drawString("ESC: Menú", gp.tileSize / 2, 55);
+        g2.setColor(Color.WHITE);
+        g2.drawString("ESC: Menú", gp.tileSize / 2, 130);
     }
 
     public void drawInventory() {

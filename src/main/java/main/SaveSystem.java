@@ -15,7 +15,6 @@ public class SaveSystem {
     private static final String SAVE_FILE = "partidas.json";
 
     public SaveSystem() {
-        // Crear carpeta de guardado si no existe
         try {
             Files.createDirectories(Paths.get(SAVE_FOLDER));
         } catch (IOException e) {
@@ -23,13 +22,18 @@ public class SaveSystem {
         }
     }
 
-    // Clase interna para representar una partida
     public static class SaveData {
         public String nombreJugador;
         public int nivelActual;
         public boolean[] nivelesCompletados;
         public String fechaGuardado;
-        public int tiempoTotal; // en segundos
+        public int tiempoTotal;
+
+        // ⭐ NUEVO: Campos para gemas
+        public int gemasAzulesRecolectadas;
+        public int gemasRojasRecolectadas;
+        public boolean[] gemasAzulesPorNivel;
+        public boolean[] gemasRojasPorNivel;
 
         public SaveData(String nombre, int nivel, boolean[] completados) {
             this.nombreJugador = nombre;
@@ -38,35 +42,51 @@ public class SaveSystem {
             this.fechaGuardado = LocalDateTime.now()
                     .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
             this.tiempoTotal = 0;
+
+            // ⭐ Inicializar arrays de gemas
+            this.gemasAzulesRecolectadas = 0;
+            this.gemasRojasRecolectadas = 0;
+            this.gemasAzulesPorNivel = new boolean[16];
+            this.gemasRojasPorNivel = new boolean[16];
         }
     }
 
-    // Guardar una nueva partida o actualizar una existente
-    public void guardarPartida(String nombreJugador, int nivelActual, boolean[] nivelesCompletados) {
+    // ⭐ MODIFICADO: Ahora incluye datos de gemas
+    public void guardarPartida(String nombreJugador, int nivelActual, boolean[] nivelesCompletados,
+                               int gemasAzules, int gemasRojas,
+                               boolean[] gemasAzulesPorNivel, boolean[] gemasRojasPorNivel) {
         try {
             List<SaveData> partidas = cargarTodasLasPartidas();
 
-            // Buscar si ya existe una partida con ese nombre
             boolean encontrada = false;
             for (int i = 0; i < partidas.size(); i++) {
                 if (partidas.get(i).nombreJugador.equalsIgnoreCase(nombreJugador)) {
-                    // Actualizar partida existente
                     SaveData save = partidas.get(i);
                     save.nivelActual = nivelActual;
                     save.nivelesCompletados = nivelesCompletados;
                     save.fechaGuardado = LocalDateTime.now()
                             .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+
+                    // ⭐ Actualizar gemas
+                    save.gemasAzulesRecolectadas = gemasAzules;
+                    save.gemasRojasRecolectadas = gemasRojas;
+                    save.gemasAzulesPorNivel = gemasAzulesPorNivel;
+                    save.gemasRojasPorNivel = gemasRojasPorNivel;
+
                     encontrada = true;
                     break;
                 }
             }
 
-            // Si no existe, crear nueva partida
             if (!encontrada) {
-                partidas.add(new SaveData(nombreJugador, nivelActual, nivelesCompletados));
+                SaveData newSave = new SaveData(nombreJugador, nivelActual, nivelesCompletados);
+                newSave.gemasAzulesRecolectadas = gemasAzules;
+                newSave.gemasRojasRecolectadas = gemasRojas;
+                newSave.gemasAzulesPorNivel = gemasAzulesPorNivel;
+                newSave.gemasRojasPorNivel = gemasRojasPorNivel;
+                partidas.add(newSave);
             }
 
-            // Guardar todo en el archivo JSON
             JSONArray jsonArray = new JSONArray();
             for (SaveData save : partidas) {
                 JSONObject jsonSave = new JSONObject();
@@ -81,14 +101,30 @@ public class SaveSystem {
                 }
                 jsonSave.put("nivelesCompletados", nivelesArray);
 
+                // ⭐ Guardar datos de gemas
+                jsonSave.put("gemasAzulesRecolectadas", save.gemasAzulesRecolectadas);
+                jsonSave.put("gemasRojasRecolectadas", save.gemasRojasRecolectadas);
+
+                JSONArray gemasAzulesArray = new JSONArray();
+                for (boolean recolectada : save.gemasAzulesPorNivel) {
+                    gemasAzulesArray.put(recolectada);
+                }
+                jsonSave.put("gemasAzulesPorNivel", gemasAzulesArray);
+
+                JSONArray gemasRojasArray = new JSONArray();
+                for (boolean recolectada : save.gemasRojasPorNivel) {
+                    gemasRojasArray.put(recolectada);
+                }
+                jsonSave.put("gemasRojasPorNivel", gemasRojasArray);
+
                 jsonArray.put(jsonSave);
             }
 
-            // Escribir al archivo
             String filePath = SAVE_FOLDER + File.separator + SAVE_FILE;
             try (FileWriter file = new FileWriter(filePath)) {
-                file.write(jsonArray.toString(4)); // 4 espacios de indentación
-                System.out.println("Partida guardada exitosamente: " + nombreJugador);
+                file.write(jsonArray.toString(4));
+                System.out.println("💾 Partida guardada: " + nombreJugador +
+                        " (Gemas Azules: " + gemasAzules + "/16, Gemas Rojas: " + gemasRojas + "/16)");
             }
 
         } catch (IOException e) {
@@ -97,14 +133,13 @@ public class SaveSystem {
         }
     }
 
-    // Cargar todas las partidas guardadas
     public List<SaveData> cargarTodasLasPartidas() {
         List<SaveData> partidas = new ArrayList<>();
         String filePath = SAVE_FOLDER + File.separator + SAVE_FILE;
         File file = new File(filePath);
 
         if (!file.exists()) {
-            return partidas; // Retornar lista vacía si no hay archivo
+            return partidas;
         }
 
         try {
@@ -127,6 +162,30 @@ public class SaveSystem {
                 save.fechaGuardado = jsonSave.getString("fechaGuardado");
                 save.tiempoTotal = jsonSave.optInt("tiempoTotal", 0);
 
+                // ⭐ Cargar datos de gemas (con valores por defecto para compatibilidad con partidas antiguas)
+                save.gemasAzulesRecolectadas = jsonSave.optInt("gemasAzulesRecolectadas", 0);
+                save.gemasRojasRecolectadas = jsonSave.optInt("gemasRojasRecolectadas", 0);
+
+                if (jsonSave.has("gemasAzulesPorNivel")) {
+                    JSONArray gemasAzulesArray = jsonSave.getJSONArray("gemasAzulesPorNivel");
+                    save.gemasAzulesPorNivel = new boolean[gemasAzulesArray.length()];
+                    for (int j = 0; j < gemasAzulesArray.length(); j++) {
+                        save.gemasAzulesPorNivel[j] = gemasAzulesArray.getBoolean(j);
+                    }
+                } else {
+                    save.gemasAzulesPorNivel = new boolean[16];
+                }
+
+                if (jsonSave.has("gemasRojasPorNivel")) {
+                    JSONArray gemasRojasArray = jsonSave.getJSONArray("gemasRojasPorNivel");
+                    save.gemasRojasPorNivel = new boolean[gemasRojasArray.length()];
+                    for (int j = 0; j < gemasRojasArray.length(); j++) {
+                        save.gemasRojasPorNivel[j] = gemasRojasArray.getBoolean(j);
+                    }
+                } else {
+                    save.gemasRojasPorNivel = new boolean[16];
+                }
+
                 partidas.add(save);
             }
 
@@ -137,7 +196,6 @@ public class SaveSystem {
         return partidas;
     }
 
-    // Cargar una partida específica por nombre
     public SaveData cargarPartida(String nombreJugador) {
         List<SaveData> partidas = cargarTodasLasPartidas();
 
@@ -150,13 +208,11 @@ public class SaveSystem {
         return null;
     }
 
-    // Eliminar una partida
     public void eliminarPartida(String nombreJugador) {
         try {
             List<SaveData> partidas = cargarTodasLasPartidas();
             partidas.removeIf(save -> save.nombreJugador.equalsIgnoreCase(nombreJugador));
 
-            // Guardar el array actualizado
             JSONArray jsonArray = new JSONArray();
             for (SaveData save : partidas) {
                 JSONObject jsonSave = new JSONObject();
@@ -170,6 +226,22 @@ public class SaveSystem {
                     nivelesArray.put(completado);
                 }
                 jsonSave.put("nivelesCompletados", nivelesArray);
+
+                // ⭐ Incluir gemas al eliminar/reescribir
+                jsonSave.put("gemasAzulesRecolectadas", save.gemasAzulesRecolectadas);
+                jsonSave.put("gemasRojasRecolectadas", save.gemasRojasRecolectadas);
+
+                JSONArray gemasAzulesArray = new JSONArray();
+                for (boolean recolectada : save.gemasAzulesPorNivel) {
+                    gemasAzulesArray.put(recolectada);
+                }
+                jsonSave.put("gemasAzulesPorNivel", gemasAzulesArray);
+
+                JSONArray gemasRojasArray = new JSONArray();
+                for (boolean recolectada : save.gemasRojasPorNivel) {
+                    gemasRojasArray.put(recolectada);
+                }
+                jsonSave.put("gemasRojasPorNivel", gemasRojasArray);
 
                 jsonArray.put(jsonSave);
             }
@@ -185,7 +257,6 @@ public class SaveSystem {
         }
     }
 
-    // Verificar si existen partidas guardadas
     public boolean hayPartidasGuardadas() {
         return !cargarTodasLasPartidas().isEmpty();
     }

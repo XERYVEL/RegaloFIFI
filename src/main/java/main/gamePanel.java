@@ -15,13 +15,11 @@ public class gamePanel extends JPanel implements Runnable {
     final int originalTileSize = 16;
     final int scale = 4;
 
-
     public int tileSize = originalTileSize * scale;
     public final int maxScreenCol = 20;
     public final int maxScreenRow = 12;
     public final int screenWidth = tileSize * maxScreenCol;
     public final int screenHeight = tileSize * maxScreenRow;
-
 
     public boolean tieneCupon = false;
 
@@ -31,6 +29,12 @@ public class gamePanel extends JPanel implements Runnable {
     public int currentMap = 0;
 
     int FPS = 60;
+
+    // ⭐ NUEVO: Sistema de gemas
+    public int gemasAzulesRecolectadas = 0;
+    public int gemasRojasRecolectadas = 0;
+    public boolean[] gemasAzulesPorNivel = new boolean[16];
+    public boolean[] gemasRojasPorNivel = new boolean[16];
 
     public Reloj reloj;
     public TileManager tileM;
@@ -95,6 +99,12 @@ public class gamePanel extends JPanel implements Runnable {
         for(int i = 0; i < levelCompleted.length; i++) {
             levelCompleted[i] = false;
         }
+
+        // ⭐ Inicializar arrays de gemas
+        for(int i = 0; i < 16; i++) {
+            gemasAzulesPorNivel[i] = false;
+            gemasRojasPorNivel[i] = false;
+        }
     }
 
     public boolean allLevelsCompleted() {
@@ -102,6 +112,11 @@ public class gamePanel extends JPanel implements Runnable {
             if(!completed) return false;
         }
         return true;
+    }
+
+    // ⭐ NUEVO: Verificar si todas las gemas fueron recolectadas
+    public boolean allGemsCollected() {
+        return gemasAzulesRecolectadas >= 16 && gemasRojasRecolectadas >= 16;
     }
 
     public void setupGame() {
@@ -134,11 +149,21 @@ public class gamePanel extends JPanel implements Runnable {
             levelCompleted[i] = false;
         }
 
-        saveSystem.guardarPartida(nombreJugador, 0, levelCompleted);
+        // ⭐ Resetear gemas
+        gemasAzulesRecolectadas = 0;
+        gemasRojasRecolectadas = 0;
+        for(int i = 0; i < 16; i++) {
+            gemasAzulesPorNivel[i] = false;
+            gemasRojasPorNivel[i] = false;
+        }
+
+        saveSystem.guardarPartida(nombreJugador, 0, levelCompleted,
+                gemasAzulesRecolectadas, gemasRojasRecolectadas,
+                gemasAzulesPorNivel, gemasRojasPorNivel);
         partidaActual = saveSystem.cargarPartida(nombreJugador);
 
         selectedLevel = 0;
-        currentMap = 0;  // ⭐ AGREGADO: Asegurar que empiece en mapa 0
+        currentMap = 0;
 
         gameState = levelSelectState;
 
@@ -158,56 +183,63 @@ public class gamePanel extends JPanel implements Runnable {
             }
 
             selectedLevel = save.nivelActual;
-            currentMap = save.nivelActual;  // ⭐ AGREGADO: Sincronizar currentMap
+            currentMap = save.nivelActual;
+
+            // ⭐ NUEVO: Cargar datos de gemas
+            gemasAzulesRecolectadas = save.gemasAzulesRecolectadas;
+            gemasRojasRecolectadas = save.gemasRojasRecolectadas;
+
+            for(int i = 0; i < save.gemasAzulesPorNivel.length && i < gemasAzulesPorNivel.length; i++) {
+                gemasAzulesPorNivel[i] = save.gemasAzulesPorNivel[i];
+            }
+
+            for(int i = 0; i < save.gemasRojasPorNivel.length && i < gemasRojasPorNivel.length; i++) {
+                gemasRojasPorNivel[i] = save.gemasRojasPorNivel[i];
+            }
 
             gameState = levelSelectState;
 
-            System.out.println("Partida cargada: " + nombreJugador + " - Nivel " + (selectedLevel + 1));
+            System.out.println("✅ Partida cargada: " + nombreJugador + " - Nivel " + (selectedLevel + 1));
+            System.out.println("   Gemas Azules: " + gemasAzulesRecolectadas + "/16");
+            System.out.println("   Gemas Rojas: " + gemasRojasRecolectadas + "/16");
         } else {
             System.err.println("Error: No se pudo cargar la partida de " + nombreJugador);
         }
     }
 
-    /**
-     * Carga un nivel específico y configura sus zonas de victoria
-     * @param levelIndex El índice del nivel (0-15)
-     */
     public void loadLevel(int levelIndex) {
         System.out.println("🔍 DEBUG: loadLevel llamado con levelIndex=" + levelIndex +
                 ", currentMap actual=" + currentMap);
 
-        // Cambiar el currentMap al nivel seleccionado
         currentMap = levelIndex;
 
         System.out.println("🎮 Cargando nivel " + (levelIndex + 1));
         System.out.println("🔍 DEBUG: currentMap ahora es=" + currentMap);
 
-        // Configurar las zonas de meta para este nivel
         if(eHandler != null) {
             eHandler.setupGoalZonesForCurrentMap();
         } else {
             System.err.println("❌ EventHandler es null!");
         }
 
-        // Configurar spawns usando AssetSetter
+        // ⭐ Configurar objetos (incluyendo gemas) para este nivel
+        aSetter.setObject();
+
         if(aSetter != null) {
             aSetter.setPlayerSpawns(levelIndex);
         } else {
             System.err.println("❌ AssetSetter es null!");
         }
 
-        // Resetear estados de UI
         if(ui != null) {
             ui.gameFinished = false;
             ui.gameOver = false;
         }
 
-        // ⭐ IMPORTANTE: Reproducir música del nivel
         System.out.println("🎵 Intentando reproducir música del nivel...");
-        stopMusic(); // Detener cualquier música previa
-        playMusic(7); // Iniciar música del nivel
+        stopMusic();
+        playMusic(7);
 
-        // Verificación final
         System.out.println("🔍 DEBUG: Después de setPlayerSpawns:");
         if(player != null) {
             System.out.println("  P1 worldX=" + player.worldX + " (" + (player.worldX/tileSize) + " tiles)");
@@ -219,18 +251,18 @@ public class gamePanel extends JPanel implements Runnable {
         }
     }
 
-
     public void completeLevel(int levelNumber) {
         if(levelNumber >= 0 && levelNumber < levelCompleted.length) {
             levelCompleted[levelNumber] = true;
             System.out.println("¡Nivel " + (levelNumber + 1) + " completado!");
 
-            // ⭐ DETENER MÚSICA AL COMPLETAR NIVEL
             stopMusic();
 
             if (!nombreJugadorActual.isEmpty()) {
                 int siguienteNivel = (levelNumber + 1 < levelCompleted.length) ? levelNumber + 1 : levelNumber;
-                saveSystem.guardarPartida(nombreJugadorActual, siguienteNivel, levelCompleted);
+                saveSystem.guardarPartida(nombreJugadorActual, siguienteNivel, levelCompleted,
+                        gemasAzulesRecolectadas, gemasRojasRecolectadas,
+                        gemasAzulesPorNivel, gemasRojasPorNivel);
                 partidaActual = saveSystem.cargarPartida(nombreJugadorActual);
                 System.out.println("Progreso guardado automáticamente");
             }
@@ -347,8 +379,8 @@ public class gamePanel extends JPanel implements Runnable {
             }
 
             ui.draw(g2);
+
             if (keyH.checkDrawTime && eHandler != null && gameState == playState) {
-                // Zona Player 1 (Azul)
                 if(eHandler.player1GoalZone != null) {
                     g2.setColor(new Color(0, 100, 255, 100));
                     g2.fillRect(
@@ -374,7 +406,6 @@ public class gamePanel extends JPanel implements Runnable {
                     }
                 }
 
-                // Zona Player 2 (Rojo)
                 if(eHandler.player2GoalZone != null) {
                     g2.setColor(new Color(255, 50, 50, 100));
                     g2.fillRect(
@@ -400,7 +431,6 @@ public class gamePanel extends JPanel implements Runnable {
                     }
                 }
 
-                // Estado general
                 g2.setColor(Color.WHITE);
                 g2.setFont(new Font("Arial", Font.BOLD, 16));
                 g2.drawString("P1 en zona AZUL: " + eHandler.player1InGoal, 10, 450);
@@ -432,9 +462,7 @@ public class gamePanel extends JPanel implements Runnable {
     }
 
     public void checkMusic() {
-        // ⭐ PRIMERO: Si hay game over, detener música (pero NO interferir con el sonido que ya se reprodujo)
         if (ui.gameOver) {
-            // Solo detener la música si todavía está sonando
             if (sonido.musicIndex != -1 && sonido.clip[sonido.musicIndex] != null &&
                     sonido.clip[sonido.musicIndex].isRunning()) {
                 stopMusic();
@@ -442,22 +470,18 @@ public class gamePanel extends JPanel implements Runnable {
             return;
         }
 
-        // Si el juego terminó (victoria), detener música
         if (ui.gameFinished) {
             stopMusic();
             return;
         }
 
-        // Detener música en menús (excepto finalScreenState)
         if(gameState == titleState || gameState == levelSelectState ||
                 gameState == loadGameState || gameState == nameInputState) {
             stopMusic();
             return;
         }
 
-        // ⭐ Música especial para la pantalla final
         if(gameState == finalScreenState) {
-            // Verificar si la música final está corriendo
             if (sonido.musicIndex != 8 || (sonido.clip[8] != null && !sonido.clip[8].isRunning())) {
                 System.out.println("🎵 Reproduciendo música final...");
                 playMusic(8);
@@ -465,16 +489,13 @@ public class gamePanel extends JPanel implements Runnable {
             return;
         }
 
-        // Durante el juego, asegurar que la música está sonando
         if (gameState == playState || gameState == dialogueState || gameState == characterState) {
-            // Verificar si la música está corriendo
             if (sonido.musicIndex != 7 || (sonido.clip[7] != null && !sonido.clip[7].isRunning())) {
                 System.out.println("🔄 Reiniciando música del nivel...");
                 playMusic(7);
             }
         }
     }
-
 
     public void playMusic(int i) {
         sonido.playMusic(i);

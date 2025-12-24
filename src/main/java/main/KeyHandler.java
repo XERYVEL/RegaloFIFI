@@ -234,16 +234,21 @@ public class KeyHandler implements KeyListener{
 
         if(code == KeyEvent.VK_ENTER) {
             if(gp.finalButtonSelected) {
-                if(gp.allLevelsCompleted()) {
-                    // ⭐ REPRODUCIR MÚSICA FINAL
+                // ⭐ MODIFICADO: Ahora requiere TODAS las gemas además de todos los niveles
+                if(gp.allLevelsCompleted() && gp.allGemsCollected()) {
                     gp.stopMusic();
                     gp.playMusic(8);
-
                     gp.gameState = gp.finalScreenState;
                     gp.playSE(5);
                 } else {
                     gp.playSE(1);
-                    System.out.println("¡Completa todos los niveles primero!");
+                    if(!gp.allLevelsCompleted()) {
+                        System.out.println("¡Completa todos los niveles primero!");
+                    }
+                    if(!gp.allGemsCollected()) {
+                        System.out.println("¡Recolecta todas las gemas! Azules: " +
+                                gp.gemasAzulesRecolectadas + "/16, Rojas: " + gp.gemasRojasRecolectadas + "/16");
+                    }
                 }
             } else {
                 boolean unlocked = (gp.selectedLevel == 0) || gp.levelCompleted[gp.selectedLevel - 1];
@@ -254,7 +259,6 @@ public class KeyHandler implements KeyListener{
                     return;
                 }
 
-                // Cargar el nivel seleccionado
                 gp.loadLevel(gp.selectedLevel);
 
                 if(gp.reloj != null) {
