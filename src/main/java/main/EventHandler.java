@@ -60,14 +60,7 @@ public class EventHandler {
         }
     }
 
-    /**
-     * Configura las zonas de meta dinámicamente basándose en los tiles 6 y 7 del mapa actual
-     * Este método DEBE ser llamado cada vez que se carga un nuevo nivel
-     *
-     * IMPORTANTE:
-     * - Tile 6 = Puerta AZUL = Player 1 (Mujer)
-     * - Tile 7 = Puerta ROJA = Player 2 (Hombre)
-     */
+
 
     public void setupGoalZonesForCurrentMap() {
         int currentMap = gp.currentMap;
@@ -263,10 +256,19 @@ public class EventHandler {
     }
 
     public void victoria(int gameState) {
+        System.out.println("🎉 ¡VICTORIA DETECTADA!");
+
+        // Reproducir sonido de victoria
         gp.playSE(2);
+
+        // Detener la música del nivel
+        gp.stopMusic();
+
+        // Marcar como terminado
         gp.ui.gameFinished = true;
         canTouchEvent = false;
 
+        // Actualizar tiempo
         gp.reloj.actualizarTiempo();
 
         System.out.println("✅ ¡VICTORIA! Ambos jugadores llegaron a sus zonas de meta");

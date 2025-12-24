@@ -5,7 +5,6 @@ import entity.Entity;
 import entity.Player1;
 import entity.Player2;
 import varios.Reloj;
-import javafx.application.Platform;
 import javax.swing.JPanel;
 import java.awt.*;
 import java.util.ArrayList;
@@ -16,15 +15,14 @@ public class gamePanel extends JPanel implements Runnable {
     final int originalTileSize = 16;
     final int scale = 4;
 
-    public VideosSwing videos;
+
     public int tileSize = originalTileSize * scale;
     public final int maxScreenCol = 20;
     public final int maxScreenRow = 12;
     public final int screenWidth = tileSize * maxScreenCol;
     public final int screenHeight = tileSize * maxScreenRow;
 
-    public boolean videoMostrado = false;
-    public boolean videoMostrado2 = false;
+
     public boolean tieneCupon = false;
 
     public final int maxWorldCol = 20;
@@ -71,7 +69,7 @@ public class gamePanel extends JPanel implements Runnable {
     public final int dialogueState = 3;
     public final int gameOverState = 4;
     public final int characterState = 5;
-    public final int videoState = 6;
+
     public final int levelSelectState = 7;
     public final int finalScreenState = 8;
     public final int loadGameState = 9;
@@ -94,16 +92,6 @@ public class gamePanel extends JPanel implements Runnable {
         eHandler = new EventHandler(this);
         saveSystem = new SaveSystem();
 
-        videos = new VideosSwing(screenWidth, screenHeight);
-
-        this.setLayout(null);
-        videos.getFXPanel().setBounds(0, 0, screenWidth, screenHeight);
-        videos.getFXPanel().setVisible(false);
-        this.add(videos.getFXPanel());
-
-        videos.loadVideo("pavon", "res/Videos/MercadoPatio.mp4");
-        videos.loadVideo("monu", "res/Videos/Monumento.mp4");
-
         for(int i = 0; i < levelCompleted.length; i++) {
             levelCompleted[i] = false;
         }
@@ -116,39 +104,9 @@ public class gamePanel extends JPanel implements Runnable {
         return true;
     }
 
-    public void showVideo(String key) {
-        gameState = videoState;
-
-        videos.getFXPanel().setVisible(true);
-        videos.getFXPanel().revalidate();
-        videos.getFXPanel().repaint();
-
-        Platform.runLater(() -> {
-            videos.play(key);
-
-            if (videos.currentPlayer != null) {
-                videos.currentPlayer.setOnEndOfMedia(() -> {
-                    Platform.runLater(() -> {
-                        videos.stop();
-                        videos.getFXPanel().setVisible(false);
-
-                        if (key.equals("monu")) {
-                            ui.gameFinished = true;
-                            gameState = playState;
-                        } else {
-                            gameState = playState;
-                        }
-                    });
-                });
-            }
-        });
-    }
-
     public void setupGame() {
         currentMap = 0;
 
-        videoMostrado = false;
-        videoMostrado2 = false;
         tieneCupon = false;
 
         player = new Player1(this, keyH);
@@ -231,7 +189,7 @@ public class gamePanel extends JPanel implements Runnable {
             System.err.println("❌ EventHandler es null!");
         }
 
-        // ⭐ Configurar spawns usando AssetSetter
+        // Configurar spawns usando AssetSetter
         if(aSetter != null) {
             aSetter.setPlayerSpawns(levelIndex);
         } else {
@@ -244,7 +202,12 @@ public class gamePanel extends JPanel implements Runnable {
             ui.gameOver = false;
         }
 
-        // ⭐ VERIFICACIÓN FINAL
+        // ⭐ IMPORTANTE: Reproducir música del nivel
+        System.out.println("🎵 Intentando reproducir música del nivel...");
+        stopMusic(); // Detener cualquier música previa
+        playMusic(7); // Iniciar música del nivel
+
+        // Verificación final
         System.out.println("🔍 DEBUG: Después de setPlayerSpawns:");
         if(player != null) {
             System.out.println("  P1 worldX=" + player.worldX + " (" + (player.worldX/tileSize) + " tiles)");
@@ -256,10 +219,14 @@ public class gamePanel extends JPanel implements Runnable {
         }
     }
 
+
     public void completeLevel(int levelNumber) {
         if(levelNumber >= 0 && levelNumber < levelCompleted.length) {
             levelCompleted[levelNumber] = true;
             System.out.println("¡Nivel " + (levelNumber + 1) + " completado!");
+
+            // ⭐ DETENER MÚSICA AL COMPLETAR NIVEL
+            stopMusic();
 
             if (!nombreJugadorActual.isEmpty()) {
                 int siguienteNivel = (levelNumber + 1 < levelCompleted.length) ? levelNumber + 1 : levelNumber;
@@ -343,9 +310,6 @@ public class gamePanel extends JPanel implements Runnable {
         }
         else if(gameState == finalScreenState) {
             ui.draw(g2);
-        }
-        else if (gameState == videoState) {
-            return;
         }
         else {
             tileM.draw(g2);
@@ -468,27 +432,49 @@ public class gamePanel extends JPanel implements Runnable {
     }
 
     public void checkMusic() {
+        // ⭐ PRIMERO: Si hay game over, detener música (pero NO interferir con el sonido que ya se reprodujo)
+        if (ui.gameOver) {
+            // Solo detener la música si todavía está sonando
+            if (sonido.musicIndex != -1 && sonido.clip[sonido.musicIndex] != null &&
+                    sonido.clip[sonido.musicIndex].isRunning()) {
+                stopMusic();
+            }
+            return;
+        }
+
+        // Si el juego terminó (victoria), detener música
         if (ui.gameFinished) {
             stopMusic();
             return;
         }
 
-        if (gameState == playState || gameState == dialogueState || gameState == characterState) {
-            if (currentMap == 0) {
-                playMusic(7);
-            } else if (currentMap == 1) {
-                playMusic(8);
-            } else if (currentMap == 2) {
-                playMusic(9);
-            } else {
-                stopMusic();
-            }
-        } else if(gameState == titleState || gameState == levelSelectState ||
-                gameState == finalScreenState || gameState == loadGameState ||
-                gameState == nameInputState) {
+        // Detener música en menús (excepto finalScreenState)
+        if(gameState == titleState || gameState == levelSelectState ||
+                gameState == loadGameState || gameState == nameInputState) {
             stopMusic();
+            return;
+        }
+
+        // ⭐ Música especial para la pantalla final
+        if(gameState == finalScreenState) {
+            // Verificar si la música final está corriendo
+            if (sonido.musicIndex != 8 || (sonido.clip[8] != null && !sonido.clip[8].isRunning())) {
+                System.out.println("🎵 Reproduciendo música final...");
+                playMusic(8);
+            }
+            return;
+        }
+
+        // Durante el juego, asegurar que la música está sonando
+        if (gameState == playState || gameState == dialogueState || gameState == characterState) {
+            // Verificar si la música está corriendo
+            if (sonido.musicIndex != 7 || (sonido.clip[7] != null && !sonido.clip[7].isRunning())) {
+                System.out.println("🔄 Reiniciando música del nivel...");
+                playMusic(7);
+            }
         }
     }
+
 
     public void playMusic(int i) {
         sonido.playMusic(i);

@@ -235,6 +235,10 @@ public class KeyHandler implements KeyListener{
         if(code == KeyEvent.VK_ENTER) {
             if(gp.finalButtonSelected) {
                 if(gp.allLevelsCompleted()) {
+                    // ⭐ REPRODUCIR MÚSICA FINAL
+                    gp.stopMusic();
+                    gp.playMusic(8);
+
                     gp.gameState = gp.finalScreenState;
                     gp.playSE(5);
                 } else {
@@ -250,7 +254,7 @@ public class KeyHandler implements KeyListener{
                     return;
                 }
 
-                // IMPORTANTE: Cargar el nivel seleccionado
+                // Cargar el nivel seleccionado
                 gp.loadLevel(gp.selectedLevel);
 
                 if(gp.reloj != null) {
@@ -281,8 +285,12 @@ public class KeyHandler implements KeyListener{
         }
     }
 
+
     public void finalScreenState(int code) {
         if(code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_ENTER) {
+            // ⭐ DETENER MÚSICA FINAL AL SALIR
+            gp.stopMusic();
+
             gp.gameState = gp.levelSelectState;
             gp.finalButtonSelected = false;
             gp.playSE(5);
