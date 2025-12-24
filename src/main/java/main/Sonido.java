@@ -12,7 +12,7 @@ public class Sonido {
     int musicIndex = -1;
 
     public Sonido() {
-        sonidoURL[0] = getClass().getResource("/sonido/Pan de ajo.wav");
+        sonidoURL[0] = getClass().getResource("/sonido/pixelJump.wav");
         sonidoURL[1] = getClass().getResource("/sonido/Pierde.wav");
         sonidoURL[2] = getClass().getResource("/sonido/Victoria.wav");
         sonidoURL[3] = getClass().getResource("/sonido/Derrota.wav");
@@ -20,9 +20,7 @@ public class Sonido {
         sonidoURL[4] = getClass().getResource("/sonido/aiaiai.wav");
         sonidoURL[6] = getClass().getResource("/sonido/MG.wav");
 
-        sonidoURL[7] = getClass().getResource("/sonido/fondo1.wav");
-        sonidoURL[8] = getClass().getResource("/sonido/fondo2.wav");
-        sonidoURL[9] = getClass().getResource("/sonido/fondo3.wav");
+        sonidoURL[7] = getClass().getResource("/sonido/fondo.wav");
 
         for (int i = 0; i < sonidoURL.length; i++) {
             if (sonidoURL[i] != null) {

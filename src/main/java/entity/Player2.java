@@ -310,51 +310,9 @@ public class Player2 extends Entity {
         velocityY = JUMP_STRENGTH;
         isGrounded = false;
         canJump = false;
-        gp.playSE(5);
+        gp.playSE(0);
     }
 
-    public void pickUpObject(int i) {
-        if (i != 999 && gp.obj[gp.currentMap][i] != null) {
-            Entity obj = gp.obj[gp.currentMap][i];
-            String objectName = obj.name.toLowerCase().trim();
-
-            if(inventory.size() >= maxInventorySize){
-                gp.ui.showMessage("Inventario lleno");
-                return;
-            }
-
-            inventory.add(obj);
-
-            if (objectName.contains("pan de ajo")) {
-                panDeAjoCount++;
-                gp.playSE(1);
-                speed += 1;
-                gp.ui.showMessage("Tienes el pan de ajo!!");
-            } else {
-                gp.playSE(1);
-                gp.ui.showMessage("Has recogido:" + obj.name);
-            }
-            gp.obj[gp.currentMap][i] = null;
-        }
-    }
-
-    public void interactNPC(int i) {
-        if (i != 999){
-            if(keyH.enterPressed == true){
-                gp.gameState = gp.dialogueState;
-                gp.npc[gp.currentMap][i].speak();
-            }
-        }
-    }
-
-    public void removeItem(String itemName) {
-        for (int i = 0; i < inventory.size(); i++) {
-            if (inventory.get(i).name.equalsIgnoreCase(itemName)) {
-                inventory.remove(i);
-                break;
-            }
-        }
-    }
 
     public void draw(Graphics2D g2) {
         BufferedImage image = null;
