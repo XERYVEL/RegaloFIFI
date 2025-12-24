@@ -11,10 +11,6 @@ public class EventHandler {
 
     EventRect eventRect[][][];
 
-    private boolean llamo = false;
-    private boolean piensa = false;
-    private boolean vioGPS = false;
-
     int previousEventX, previousEventY;
 
     boolean canTouchEvent = true;
@@ -28,7 +24,6 @@ public class EventHandler {
     public EventHandler(gamePanel gp) {
         this.gp = gp;
 
-        // CORREGIDO: Aumentar el tamaño del array para 16 niveles
         eventRect = new EventRect[16][gp.maxWorldCol][gp.maxWorldRow];
 
         int map = 0;
@@ -60,8 +55,6 @@ public class EventHandler {
         }
     }
 
-
-
     public void setupGoalZonesForCurrentMap() {
         int currentMap = gp.currentMap;
 
@@ -72,7 +65,6 @@ public class EventHandler {
         int tile6Col = -1, tile6Row = -1;
         int tile7Col = -1, tile7Row = -1;
 
-        // ⭐ DEBUGGING: Ver qué mapa estamos leyendo
         System.out.println("   Buscando puertas en mapTileNum[" + currentMap + "][col][row]...");
 
         for (int col = 0; col < gp.maxWorldCol; col++) {
@@ -92,7 +84,6 @@ public class EventHandler {
             }
         }
 
-        // CORREGIDO: Tile 6 (puertaH/AZUL) es para Player1 (Mujer)
         if (tile6Col != -1 && tile6Row != -1) {
             player1GoalZone = new Rectangle(
                     tile6Col * gp.tileSize,
@@ -106,7 +97,6 @@ public class EventHandler {
             System.err.println("⚠️ No se encontró tile 6 (zona P1/AZUL) en el nivel " + (currentMap + 1));
         }
 
-        // CORREGIDO: Tile 7 (puertaM/ROJA) es para Player2 (Hombre)
         if (tile7Col != -1 && tile7Row != -1) {
             player2GoalZone = new Rectangle(
                     tile7Col * gp.tileSize,
@@ -139,19 +129,6 @@ public class EventHandler {
 
         // IMPORTANTE: Verificar zonas de meta en cada frame
         checkGoalZones();
-
-        if (canTouchEvent) {
-            if (hit(0, 10, 5, Direccion.Arriba)) {
-                interactuarEntorno(0, 10, 5, gp.dialogueState);
-            }
-
-            if (hit(0, 19, 10, Direccion.Derecha)) {
-                if(!piensa) {
-                    mensajeLugar(gp.dialogueState);
-                    piensa = true;
-                }
-            }
-        }
     }
 
     private void checkGoalZones() {
@@ -202,59 +179,6 @@ public class EventHandler {
         }
     }
 
-    public boolean hit(int map, int col, int row, Direccion reqDirection) {
-        boolean hit = false;
-
-        if(col < 0 || col >= gp.maxWorldCol || row < 0 || row >= gp.maxWorldRow) {
-            return false;
-        }
-
-        if (map == gp.currentMap) {
-            Entity[] players = {gp.player, gp.player2};
-
-            for(Entity player : players) {
-                if(player == null) continue;
-
-                player.solidArea.x = player.worldX + player.solidArea.x;
-                player.solidArea.y = player.worldY + player.solidArea.y;
-                eventRect[map][col][row].x = col * gp.tileSize + eventRect[map][col][row].x;
-                eventRect[map][col][row].y = row * gp.tileSize + eventRect[map][col][row].y;
-
-                if(player.solidArea.intersects(eventRect[map][col][row]) && eventRect[map][col][row].eventDone == false) {
-
-                    if(player.direction == reqDirection || reqDirection == Direccion.Any) {
-                        hit = true;
-
-                        previousEventX = player.worldX;
-                        previousEventY = player.worldY;
-                        break;
-                    }
-                }
-
-                player.solidArea.x = player.solidAreaDefaultX;
-                player.solidArea.y = player.solidAreaDefaultY;
-            }
-
-            eventRect[map][col][row].x = eventRect[map][col][row].eventRectDefaultX;
-            eventRect[map][col][row].y = eventRect[map][col][row].eventRectDefaultY;
-        }
-        return hit;
-    }
-
-    public void mensajeLugar(int gameState) {
-        gp.gameState = gameState;
-        gp.ui.currentDialogue = "Casi llegas a la cima!\nSigue subiendo!";
-        canTouchEvent = false;
-    }
-
-    public void interactuarEntorno(int map, int col, int row, int gameState) {
-        if(gp.keyH.enterPressed == true) {
-            gp.gameState = gameState;
-            gp.ui.currentDialogue = "Una plataforma misteriosa...";
-            eventRect[map][col][row].eventDone = true;
-        }
-    }
-
     public void victoria(int gameState) {
         System.out.println("🎉 ¡VICTORIA DETECTADA!");
 
@@ -272,18 +196,5 @@ public class EventHandler {
         gp.reloj.actualizarTiempo();
 
         System.out.println("✅ ¡VICTORIA! Ambos jugadores llegaron a sus zonas de meta");
-    }
-
-    public void teleport(int map, int col, int row) {
-        if(col < 0 || col >= gp.maxWorldCol || row < 0 || row >= gp.maxWorldRow) {
-            return;
-        }
-
-        gp.currentMap = map;
-        gp.player.worldX = gp.tileSize * col;
-        gp.player.worldY = gp.tileSize * row;
-        previousEventX = gp.player.worldX;
-        previousEventY = gp.player.worldY;
-        canTouchEvent = false;
     }
 }
