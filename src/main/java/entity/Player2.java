@@ -2,6 +2,7 @@ package entity;
 
 import main.gamePanel;
 import main.KeyHandler;
+import object.OBJ_gemaRoja;
 import varios.Direccion;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -13,7 +14,6 @@ public class Player2 extends Entity {
     public final int screenX;
     public final int screenY;
 
-    // Variables para física de plataformas
     public double velocityY = 0;
     public final double GRAVITY = 0.5;
     public final double JUMP_STRENGTH = -12;
@@ -88,6 +88,9 @@ public class Player2 extends Entity {
 
         applyGravity();
 
+        // ⭐ Verificar colisión con gemas rojas
+        checkGemCollision();
+
         if(moving) {
             spriteCounter++;
             if (spriteCounter > 10) {
@@ -97,40 +100,75 @@ public class Player2 extends Entity {
         }
     }
 
+    // ⭐ NUEVO: Método para verificar colisión con gemas rojas
+    private void checkGemCollision() {
+        Rectangle playerRect = new Rectangle(
+                worldX + solidArea.x,
+                worldY + solidArea.y,
+                solidArea.width,
+                solidArea.height
+        );
+
+        // Verificar colisión con objetos del mapa actual
+        for(int i = 0; i < gp.obj[gp.currentMap].length; i++) {
+            if(gp.obj[gp.currentMap][i] != null && gp.obj[gp.currentMap][i] instanceof OBJ_gemaRoja) {
+                Rectangle gemRect = new Rectangle(
+                        gp.obj[gp.currentMap][i].worldX,
+                        gp.obj[gp.currentMap][i].worldY,
+                        gp.tileSize,
+                        gp.tileSize
+                );
+
+                if(playerRect.intersects(gemRect)) {
+                    // ¡Gema roja recolectada!
+                    System.out.println("💎 Player 2 recolectó gema ROJA en nivel " + (gp.currentMap + 1));
+
+                    // Marcar como recolectada
+                    gp.gemasRojasPorNivel[gp.currentMap] = true;
+                    gp.gemasRojasRecolectadas++;
+
+                    // Reproducir sonido
+                    gp.playSE(5);
+
+                    // Eliminar la gema del mapa
+                    gp.obj[gp.currentMap][i] = null;
+
+                    System.out.println("📊 Gemas azules totales: " + gp.gemasAzulesRecolectadas + "/16");
+                    System.out.println("📊 Gemas rojas totales: " + gp.gemasRojasRecolectadas + "/16");
+
+                    break;
+                }
+            }
+        }
+    }
+
     private void moveHorizontal(int speedX) {
         worldX += speedX;
 
-        // Verificar si estamos colisionando con una pared
         boolean collision = checkWallCollision();
 
         if(collision) {
-            // Empujar al jugador fuera de la pared, 1 píxel a la vez
             if(speedX < 0) {
-                // Estábamos moviendo a la izquierda, empujar a la derecha
                 while(checkWallCollision() && worldX < gp.screenWidth) {
                     worldX++;
                 }
             } else if(speedX > 0) {
-                // Estábamos moviendo a la derecha, empujar a la izquierda
                 while(checkWallCollision() && worldX > 0) {
                     worldX--;
                 }
             }
         }
 
-        // Verificar colisión con otro jugador
         if(checkPlayerCollision(speedX, 0)) {
-            worldX -= speedX; // Revertir movimiento
+            worldX -= speedX;
         }
     }
 
     private boolean checkWallCollision() {
-        // Calcular bounds del jugador
         int entityLeftWorldX = worldX + solidArea.x;
         int entityRightWorldX = worldX + solidArea.x + solidArea.width;
         int entityTopWorldY = worldY + solidArea.y;
 
-        // Solo verificar hasta el 75% de la altura para evitar detectar el suelo
         int entityCheckBottomY = worldY + solidArea.y + (int)(solidArea.height * 0.75);
 
         int entityLeftCol = entityLeftWorldX / gp.tileSize;
@@ -138,7 +176,6 @@ public class Player2 extends Entity {
         int entityTopRow = entityTopWorldY / gp.tileSize;
         int entityCheckBottomRow = entityCheckBottomY / gp.tileSize;
 
-        // Verificar columna izquierda
         if(entityLeftCol >= 0 && entityLeftCol < gp.maxWorldCol) {
             for(int row = entityTopRow; row <= entityCheckBottomRow; row++) {
                 if(row >= 0 && row < gp.maxWorldRow) {
@@ -149,7 +186,6 @@ public class Player2 extends Entity {
             }
         }
 
-        // Verificar columna derecha
         if(entityRightCol >= 0 && entityRightCol < gp.maxWorldCol) {
             for(int row = entityTopRow; row <= entityCheckBottomRow; row++) {
                 if(row >= 0 && row < gp.maxWorldRow) {
@@ -176,15 +212,11 @@ public class Player2 extends Entity {
         collisionOn = false;
 
         if(velocityY > 0) {
-            // Cayendo - verificar colisión con suelo
-
-            // Usar hitbox expandida SOLO para los bordes, no para el centro
-            int groundDetectionMargin = 4; // Reducido de 6 a 4
+            int groundDetectionMargin = 4;
 
             int entityCenterX = worldX + solidArea.x + solidArea.width / 2;
             int entityBottomY = worldY + solidArea.y + solidArea.height;
 
-            // Verificar 3 puntos: izquierda, centro, derecha
             int leftX = worldX + solidArea.x - groundDetectionMargin;
             int rightX = worldX + solidArea.x + solidArea.width + groundDetectionMargin;
 
@@ -195,23 +227,19 @@ public class Player2 extends Entity {
 
             boolean groundDetected = false;
 
-            // Verificar tiles de suelo (asegurarse de que estén dentro del rango)
             if(bottomRow >= 0 && bottomRow < gp.maxWorldRow) {
-                // Izquierda
                 if(leftCol >= 0 && leftCol < gp.maxWorldCol) {
                     if(gp.tileM.tile[gp.tileM.mapTileNum[gp.currentMap][leftCol][bottomRow]].collision) {
                         groundDetected = true;
                     }
                 }
 
-                // Centro (más importante)
                 if(!groundDetected && centerCol >= 0 && centerCol < gp.maxWorldCol) {
                     if(gp.tileM.tile[gp.tileM.mapTileNum[gp.currentMap][centerCol][bottomRow]].collision) {
                         groundDetected = true;
                     }
                 }
 
-                // Derecha
                 if(!groundDetected && rightCol >= 0 && rightCol < gp.maxWorldCol) {
                     if(gp.tileM.tile[gp.tileM.mapTileNum[gp.currentMap][rightCol][bottomRow]].collision) {
                         groundDetected = true;
@@ -219,26 +247,22 @@ public class Player2 extends Entity {
                 }
             }
 
-            // También verificar colisión con el otro jugador desde arriba
             if(checkPlayerCollisionFromAbove()) {
                 groundDetected = true;
             }
 
             if(groundDetected) {
-                // Ajustar posición para quedar exactamente sobre el tile
                 int tileTopY = bottomRow * gp.tileSize;
                 worldY = tileTopY - solidArea.y - solidArea.height;
 
                 velocityY = 0;
                 isGrounded = true;
                 canJump = true;
-                // NO setear collisionOn = true aquí, solo afecta movimiento vertical
             } else {
                 isGrounded = false;
             }
 
         } else if(velocityY < 0) {
-            // Subiendo - verificar colisión con techo
             gp.cChecker.checkTile(this);
 
             if(checkPlayerCollision(0, (int)velocityY)) {
@@ -312,7 +336,6 @@ public class Player2 extends Entity {
         canJump = false;
         gp.playSE(0);
     }
-
 
     public void draw(Graphics2D g2) {
         BufferedImage image = null;
