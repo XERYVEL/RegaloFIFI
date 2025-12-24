@@ -250,10 +250,9 @@ public class AssetSetter {
         }
     }
 
+    // Método simplificado - ya no hace nada con NPCs
     public void setNPC() {
-        int mapNum = 0;
-        mapNum = 1;
-        mapNum = 2;
+        // Método mantenido por compatibilidad pero ya no carga NPCs
     }
 
     public void setPlayerSpawns(int levelIndex) {
@@ -277,8 +276,8 @@ public class AssetSetter {
                 break;
 
             case 3: // NIVEL 4
-                p1Col = 1; p1Row = 10;
-                p2Col = 16; p2Row = 10;
+                p1Col = 18; p1Row = 10;
+                p2Col = 1; p2Row = 10;
                 break;
 
             case 4: // NIVEL 5

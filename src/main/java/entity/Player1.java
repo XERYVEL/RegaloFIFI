@@ -3,7 +3,6 @@ package entity;
 import main.gamePanel;
 import main.KeyHandler;
 import object.OBJ_gemaAzul;
-import object.OBJ_sube;
 import varios.Direccion;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -22,7 +21,6 @@ public class Player1 extends Entity {
     public boolean isGrounded = false;
     public boolean canJump = true;
 
-    public int panDeAjoCount = 0;
     public ArrayList<Entity> inventory = new ArrayList<>();
     public final int maxInventorySize = 20;
 
@@ -34,9 +32,9 @@ public class Player1 extends Entity {
         screenY = 0;
 
         solidArea = new Rectangle();
-        solidArea.x = 8;
+        solidArea.x = 16;
         solidArea.y = 16;
-        solidArea.width = 32;
+        solidArea.width = 20;
         solidArea.height = 32;
 
         solidAreaDefaultX = solidArea.x;
@@ -44,7 +42,6 @@ public class Player1 extends Entity {
 
         setDefaultValues();
         getPlayerImage();
-        setItems();
     }
 
     public void setDefaultValues() {
@@ -53,10 +50,6 @@ public class Player1 extends Entity {
         velocityY = 0;
         isGrounded = false;
         canJump = true;
-    }
-
-    public void setItems() {
-        inventory.add(new OBJ_sube(gp));
     }
 
     public void getPlayerImage() {
@@ -106,7 +99,7 @@ public class Player1 extends Entity {
         }
     }
 
-    // ⭐ NUEVO: Método para verificar colisión con gemas azules
+    // ⭐ Método para verificar colisión con gemas azules
     private void checkGemCollision() {
         Rectangle playerRect = new Rectangle(
                 worldX + solidArea.x,
@@ -149,24 +142,21 @@ public class Player1 extends Entity {
     }
 
     private void moveHorizontal(int speedX) {
+        // Guardar posición anterior
+        int oldX = worldX;
+
+        // Intentar moverse
         worldX += speedX;
 
-        boolean collision = checkWallCollision();
-
-        if(collision) {
-            if(speedX < 0) {
-                while(checkWallCollision() && worldX < gp.screenWidth) {
-                    worldX++;
-                }
-            } else if(speedX > 0) {
-                while(checkWallCollision() && worldX > 0) {
-                    worldX--;
-                }
-            }
+        // Verificar colisión con paredes
+        if(checkWallCollision()) {
+            // Si hay colisión, simplemente volver a la posición anterior
+            worldX = oldX;
         }
 
+        // Verificar colisión con el otro jugador
         if(checkPlayerCollision(speedX, 0)) {
-            worldX -= speedX;
+            worldX = oldX;
         }
     }
 
@@ -182,6 +172,12 @@ public class Player1 extends Entity {
         int entityTopRow = entityTopWorldY / gp.tileSize;
         int entityCheckBottomRow = entityCheckBottomY / gp.tileSize;
 
+        // Verificar límites del mapa
+        if(entityLeftCol < 0 || entityRightCol >= gp.maxWorldCol) {
+            return true;
+        }
+
+        // Verificar lado izquierdo
         if(entityLeftCol >= 0 && entityLeftCol < gp.maxWorldCol) {
             for(int row = entityTopRow; row <= entityCheckBottomRow; row++) {
                 if(row >= 0 && row < gp.maxWorldRow) {
@@ -192,6 +188,7 @@ public class Player1 extends Entity {
             }
         }
 
+        // Verificar lado derecho
         if(entityRightCol >= 0 && entityRightCol < gp.maxWorldCol) {
             for(int row = entityTopRow; row <= entityCheckBottomRow; row++) {
                 if(row >= 0 && row < gp.maxWorldRow) {
@@ -218,6 +215,7 @@ public class Player1 extends Entity {
         collisionOn = false;
 
         if(velocityY > 0) {
+            // Cayendo - verificar suelo
             int groundDetectionMargin = 4;
 
             int entityCenterX = worldX + solidArea.x + solidArea.width / 2;
@@ -269,6 +267,7 @@ public class Player1 extends Entity {
             }
 
         } else if(velocityY < 0) {
+            // Subiendo - verificar techo
             gp.cChecker.checkTile(this);
 
             if(checkPlayerCollision(0, (int)velocityY)) {
